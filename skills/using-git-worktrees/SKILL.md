@@ -100,7 +100,9 @@ cd "$path"
 
 ### 3. Run Project Setup
 
-Auto-detect and run appropriate setup:
+**First, check CLAUDE.md** (or AGENTS.md) for project-specific setup instructions. Monorepos and multi-directory projects often require running setup from a subdirectory (e.g. `cd backend && uv sync`). If CLAUDE.md specifies setup steps, follow those exactly and skip auto-detection.
+
+**Otherwise, auto-detect and run from the worktree root:**
 
 ```bash
 # Node.js
@@ -109,9 +111,11 @@ if [ -f package.json ]; then npm install; fi
 # Rust
 if [ -f Cargo.toml ]; then cargo build; fi
 
-# Python
-if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-if [ -f pyproject.toml ]; then poetry install; fi
+# Python (check uv first — uv projects also have pyproject.toml)
+if [ -f uv.lock ]; then uv sync
+elif [ -f requirements.txt ]; then uv pip install -r requirements.txt
+elif [ -f pyproject.toml ]; then uv sync
+fi
 
 # Go
 if [ -f go.mod ]; then go mod download; fi
@@ -125,7 +129,7 @@ Run tests to ensure worktree starts clean:
 # Examples - use project-appropriate command
 npm test
 cargo test
-pytest
+uv run pytest  # Python (uv projects)
 go test ./...
 ```
 

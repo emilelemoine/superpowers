@@ -29,7 +29,7 @@ You MUST create a task for each of these items and complete them in order:
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+9. **Transition to implementation** — spawn a fresh-context `code-planner` agent with only the design doc path
 
 ## Process Flow
 
@@ -46,7 +46,7 @@ digraph brainstorming {
     "Spec review loop" [shape=box];
     "Spec review passed?" [shape=diamond];
     "User reviews spec?" [shape=diamond];
-    "Invoke writing-plans skill" [shape=doublecircle];
+    "Spawn code-planner agent\n(fresh context)" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
@@ -62,11 +62,11 @@ digraph brainstorming {
     "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
     "Spec review passed?" -> "User reviews spec?" [label="approved"];
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "User reviews spec?" -> "Spawn code-planner agent\n(fresh context)" [label="approved"];
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**The terminal state is spawning a `code-planner` agent.** Do NOT invoke writing-plans in the current session, frontend-design, mcp-builder, or any other implementation skill. The brainstorming session's context is polluted with exploration and Q&A — the plan writer needs fresh context with only the design doc.
 
 ## The Process
 
@@ -132,8 +132,20 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 **Implementation:**
 
-- Invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
+Spawn a `code-planner` agent with fresh context. Do NOT invoke `/writing-plans` in the current session — the context window is full of exploration and back-and-forth that the plan writer doesn't need.
+
+```
+Agent:
+  subagent_type: code-planner
+  prompt: |
+    Write an implementation plan from the design doc at <design-doc-path>.
+    Worktree: <worktree-path-if-applicable>
+```
+
+The agent will read the design doc (its only input), explore the codebase independently, write the plan, split into sub-step files if needed, and present execution options to the user.
+
+- Do NOT summarize the brainstorming conversation for the agent — it should start fresh
+- Do NOT invoke any other skill. The code-planner agent is the next step.
 
 ## Key Principles
 

@@ -10,6 +10,7 @@ description: General guidelines and defaults for Python programming. Use when wo
 - Codebases should be **simple, readable, and easily expandable**.
 - Lint/format: ruff (format + lint) — always env-local, never global
 - **Dev tools** (`ruff`, `pytest`) go in `[dependency-groups].dev` so plain `uv sync` installs them. Invoke via `uv run ruff` / `uv run pytest` (never system-installed versions).
+- If a project uses `[project.optional-dependencies]` instead, document the setup command in CLAUDE.md (e.g. `uv sync --extra dev`) — plain `uv sync` won't install them.
 - Designed to scale: single GPU → **DDP** without rewrites; CPU parallelism where useful.
 - Prefer "thin scripts, real code in `src/`"
   - For packages, scripts in /script. For projects, scripts numbered (01-.., 02-...) in root

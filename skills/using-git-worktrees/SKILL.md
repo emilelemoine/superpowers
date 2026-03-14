@@ -74,33 +74,36 @@ No .gitignore verification needed - outside project entirely.
 
 ## Creation Steps
 
-### 1. Detect Project Name
+### 1. Detect Project Name and Repo Root
 
 ```bash
-project=$(basename "$(git rev-parse --show-toplevel)")
+repo_root=$(git rev-parse --show-toplevel)
+project=$(basename "$repo_root")
 ```
 
 ### 2. Create Worktree
 
+**Always use absolute paths** — the shell's CWD may not be the repo root.
+
 ```bash
-# Determine full path
+# Determine absolute path
 case $LOCATION in
   .worktrees|worktrees)
-    path="$LOCATION/$BRANCH_NAME"
+    abs_path="$repo_root/$LOCATION/$BRANCH_NAME"
     ;;
   ~/.config/superpowers/worktrees/*)
-    path="~/.config/superpowers/worktrees/$project/$BRANCH_NAME"
+    abs_path="$HOME/.config/superpowers/worktrees/$project/$BRANCH_NAME"
     ;;
 esac
 
-# Create worktree with new branch
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
+# Create worktree from repo root
+git -C "$repo_root" worktree add "$abs_path" -b "$BRANCH_NAME"
+cd "$abs_path"
 ```
 
 ### 3. Run Project Setup
 
-**First, check CLAUDE.md** (or AGENTS.md) for project-specific setup instructions. Monorepos and multi-directory projects often require running setup from a subdirectory (e.g. `cd backend && uv sync`). If CLAUDE.md specifies setup steps, follow those exactly and skip auto-detection.
+**First, check CLAUDE.md** (or AGENTS.md) for project-specific setup instructions. These always take precedence — they know the exact project structure, dependency groups, and subdirectories. If CLAUDE.md specifies setup steps, follow those exactly and skip auto-detection.
 
 **Otherwise, auto-detect and run from the worktree root:**
 
@@ -112,9 +115,10 @@ if [ -f package.json ]; then npm install; fi
 if [ -f Cargo.toml ]; then cargo build; fi
 
 # Python (check uv first — uv projects also have pyproject.toml)
-if [ -f uv.lock ]; then uv sync
+# --all-extras ensures optional dependency groups (e.g. dev, test) are installed
+if [ -f uv.lock ]; then uv sync --all-extras
 elif [ -f requirements.txt ]; then uv pip install -r requirements.txt
-elif [ -f pyproject.toml ]; then uv sync
+elif [ -f pyproject.toml ]; then uv sync --all-extras
 fi
 
 # Go
@@ -173,6 +177,11 @@ Ready to implement <feature-name>
 
 - **Problem:** Can't distinguish new bugs from pre-existing issues
 - **Fix:** Report failures, get explicit permission to proceed
+
+### Using relative paths for worktree commands
+
+- **Problem:** If CWD isn't the repo root, `git worktree add` and subsequent commands (e.g. `uv run pytest`) resolve paths incorrectly
+- **Fix:** Capture `repo_root` via `git rev-parse --show-toplevel` and use absolute paths throughout
 
 ### Hardcoding setup commands
 

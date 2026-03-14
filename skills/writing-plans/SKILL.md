@@ -13,9 +13,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
-
-**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
 
 ## Scope Check
@@ -133,15 +131,14 @@ After completing each chunk of the plan:
 
 After saving the plan:
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Ready to execute?"**
+**"Plan complete and saved to `docs/plans/<filename>.md`. Ready to execute?"**
 
-**Execution path depends on harness capabilities:**
+**Execution path depends on task characteristics:**
 
-**If harness has subagents (Claude Code, etc.):**
-- **REQUIRED:** Use superpowers:subagent-driven-development
-- Do NOT offer a choice - subagent-driven is the standard approach
-- Fresh subagent per task + two-stage review
+Pick one of these two skills for the plan header:
 
-**If harness does NOT have subagents:**
-- Execute plan in current session using superpowers:executing-plans
-- Batch execution with checkpoints for review
+- **superpowers:subagent-driven-development** — Fresh subagent per task with two-stage automated review (spec compliance + code quality). Best when tasks are mostly independent and self-contained, substantial enough to warrant per-task review, or the plan is large enough that context pollution is a risk. Requires subagent support (Claude Code, Codex).
+
+- **superpowers:executing-plans** — Batch execution with human review between batches. Best when tasks are tightly coupled, the plan is short, or continuous context across tasks matters more than isolation. Also the fallback when subagents are not available.
+
+Assess task independence, coupling, and plan size to make this decision.

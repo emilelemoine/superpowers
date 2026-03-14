@@ -223,22 +223,7 @@ Agent (general-purpose):
 - If Issues Found: fix, re-dispatch, repeat until Approved
 - If loop exceeds 5 iterations, surface to human for guidance
 
-### Phase 8 — Task Persistence
-
-Write a `.tasks.json` file alongside each plan file:
-
-```json
-{
-  "planPath": "docs/plans/YYYY-MM-DD-feature.md",
-  "tasks": [
-    {"id": 0, "subject": "Task 0: ...", "status": "pending"},
-    {"id": 1, "subject": "Task 1: ...", "status": "pending", "blockedBy": [0]}
-  ],
-  "lastUpdated": "<timestamp>"
-}
-```
-
-### Phase 9 — Execution Handoff
+### Phase 8 — Execution Handoff
 
 After writing the plan, present execution options to the user:
 

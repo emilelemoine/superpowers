@@ -172,24 +172,26 @@ Which option?
 
 #### Option 1: Merge Locally
 
-```bash
-# Switch to base branch
-git checkout <base-branch>
+Cleanup worktree first (Step 9), then merge and delete branch:
 
-# Pull latest
+```bash
+# 1. Leave worktree and remove it (Step 9)
+cd <main-repo>
+git worktree remove <worktree-path>
+
+# 2. Switch to base branch and pull latest
+git checkout <base-branch>
 git pull
 
-# Merge feature branch
+# 3. Merge feature branch
 git merge <feature-branch>
 
-# Verify tests on merged result
+# 4. Verify tests on merged result
 <test command>
 
-# If tests pass
+# 5. If tests pass, delete feature branch
 git branch -d <feature-branch>
 ```
-
-Then: Cleanup worktree (Step 9)
 
 #### Option 2: Push and Create PR
 
@@ -208,7 +210,9 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 9)
+Report: "PR created. Worktree preserved at <path> for any follow-up changes."
+
+**Don't cleanup worktree** — the PR may need revisions.
 
 #### Option 3: Keep As-Is
 
@@ -230,29 +234,35 @@ Type 'discard' to confirm.
 
 Wait for exact confirmation.
 
-If confirmed:
+If confirmed, cleanup worktree first (Step 9), then delete branch:
+
 ```bash
+# 1. Leave worktree and remove it (Step 9)
+cd <main-repo>
+git worktree remove <worktree-path>
+
+# 2. Delete feature branch
 git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 9)
+### Step 9: Cleanup Worktree and Branch
 
-### Step 9: Cleanup Worktree
+**For Options 1 and 4 only:**
 
-**For Options 1, 2, 4:**
+**Cleanup order (always, no exceptions):** `cd <main-repo>` → `git worktree remove <path>` → `git branch -d/-D <branch>`. Never delete the branch before removing the worktree.
 
-Check if in worktree:
 ```bash
-git worktree list | grep $(git branch --show-current)
-```
+# 1. Leave the worktree
+cd <main-repo>
 
-If yes:
-```bash
+# 2. Remove the worktree FIRST
 git worktree remove <worktree-path>
+
+# 3. THEN delete the branch (see Option 1/4 above for the rest)
 ```
 
-**For Option 3:** Keep worktree.
+**For Options 2 and 3:** Keep worktree.
 
 ## Quick Reference
 
@@ -305,8 +315,8 @@ git worktree remove <worktree-path>
 ## Integration
 
 **Called by:**
-- **subagent-driven-development** (Step 7) - After all tasks complete
-- **executing-plans** (Step 5) - After all batches complete
+- **subagent-driven-development** - After all tasks complete
+- **executing-plans** - After all tasks complete
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill

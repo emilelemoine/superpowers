@@ -10,15 +10,15 @@ Skills use Claude Code tool names. When you encounter these in a skill, use your
 | `Bash` (run commands) | `run_shell_command` |
 | `Grep` (search file content) | `grep_search` |
 | `Glob` (search files by name) | `glob` |
-| `TodoWrite` (task tracking) | `write_todos` |
+| `TaskCreate`/`TaskUpdate` (task tracking) | `write_todos` |
 | `Skill` tool (invoke a skill) | `activate_skill` |
 | `WebSearch` | `google_web_search` |
 | `WebFetch` | `web_fetch` |
-| `Task` tool (dispatch subagent) | No equivalent — Gemini CLI does not support subagents |
+| `Agent` tool (dispatch subagent) | No equivalent — Gemini CLI does not support subagents |
 
 ## No subagent support
 
-Gemini CLI has no equivalent to Claude Code's `Task` tool. Skills that rely on subagent dispatch (`subagent-driven-development`, `dispatching-parallel-agents`) will fall back to single-session execution via `executing-plans`.
+Gemini CLI has no equivalent to Claude Code's `Agent` tool. Skills that rely on subagent dispatch (subagent-driven-development, dispatching-parallel-agents) will fall back to single-session execution via executing-plans.
 
 ## Additional Gemini CLI tools
 

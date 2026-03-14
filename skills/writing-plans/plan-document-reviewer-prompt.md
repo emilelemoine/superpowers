@@ -7,7 +7,7 @@ Use this template when dispatching a plan document reviewer subagent.
 **Dispatch after:** Each plan chunk is written
 
 ```
-Task tool (general-purpose):
+Agent tool (general-purpose):
   description: "Review plan chunk N"
   prompt: |
     You are a plan document reviewer. Verify this plan chunk is complete and ready for implementation.

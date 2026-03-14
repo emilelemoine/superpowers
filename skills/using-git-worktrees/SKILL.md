@@ -9,222 +9,66 @@ description: Use when starting feature work that needs isolation from current wo
 
 Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.
 
-**Core principle:** Systematic directory selection + safety verification = reliable isolation.
+**Core principle:** Delegate setup to a subagent so mechanical work doesn't pollute your context.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
-## Directory Selection Process
+## Setup: Dispatch the Worktree-Setup Agent
 
-Follow this priority order:
+Spawn a `worktree-setup` agent to handle all mechanical setup work:
 
-### 1. Check Existing Directories
+```
+Agent:
+  subagent_type: worktree-setup
+  description: "Set up worktree for <branch>"
+  prompt: "Set up a worktree for branch <BRANCH_NAME> in repo <REPO_ROOT>"
+```
+
+The agent handles: directory detection, gitignore verification, worktree creation, dependency installation, and test baseline — then returns a structured report.
+
+## Handle the Report
+
+The agent returns a report with: **Path**, **Branch**, **Tests**, **Issues**, and **Decisions**.
+
+```dot
+digraph handle_report {
+    "Agent returns report" [shape=box];
+    "Issues reported?" [shape=diamond];
+    "Tests passing?" [shape=diamond];
+    "Proceed with work" [shape=doublecircle];
+    "Surface issues to user" [shape=box];
+
+    "Agent returns report" -> "Issues reported?";
+    "Issues reported?" -> "Surface issues to user" [label="yes"];
+    "Issues reported?" -> "Tests passing?" [label="no"];
+    "Tests passing?" -> "Proceed with work" [label="yes"];
+    "Tests passing?" -> "Surface issues to user" [label="no"];
+    "Surface issues to user" -> "Proceed with work" [label="user says proceed"];
+}
+```
+
+- **No issues, tests passing:** Proceed with implementation
+- **Tests failing:** Report to user, ask whether to proceed or investigate
+- **Setup issues (gitignore fixed, dep warnings):** Note them but proceed unless they look serious
+
+## Cleanup
+
+**Worktree cleanup order** (always, no exceptions):
 
 ```bash
-# Check in priority order
-ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-ls -d worktrees 2>/dev/null      # Alternative
+cd <main-repo>
+git worktree remove <path>
+git branch -d <branch>
 ```
 
-**If found:** Use that directory. If both exist, `.worktrees` wins.
-
-### 2. Check CLAUDE.md
-
-```bash
-grep -i "worktree.*director" CLAUDE.md 2>/dev/null
-```
-
-**If preference specified:** Use it without asking.
-
-### 3. Ask User
-
-If no directory exists and no CLAUDE.md preference:
-
-```
-No worktree directory found. Where should I create worktrees?
-
-1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global location)
-
-Which would you prefer?
-```
-
-## Safety Verification
-
-### For Project-Local Directories (.worktrees or worktrees)
-
-**MUST verify directory is ignored before creating worktree:**
-
-```bash
-# Check if directory is ignored (respects local, global, and system gitignore)
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
-```
-
-**If NOT ignored:**
-
-Fix broken things immediately:
-1. Add appropriate line to .gitignore
-2. Commit the change
-3. Proceed with worktree creation
-
-**Why critical:** Prevents accidentally committing worktree contents to repository.
-
-### For Global Directory (~/.config/superpowers/worktrees)
-
-No .gitignore verification needed - outside project entirely.
-
-## Creation Steps
-
-### 1. Detect Project Name and Repo Root
-
-```bash
-repo_root=$(git rev-parse --show-toplevel)
-project=$(basename "$repo_root")
-```
-
-### 2. Create Worktree
-
-**Always use absolute paths** — the shell's CWD may not be the repo root.
-
-```bash
-# Determine absolute path
-case $LOCATION in
-  .worktrees|worktrees)
-    abs_path="$repo_root/$LOCATION/$BRANCH_NAME"
-    ;;
-  ~/.config/superpowers/worktrees/*)
-    abs_path="$HOME/.config/superpowers/worktrees/$project/$BRANCH_NAME"
-    ;;
-esac
-
-# Create worktree from repo root
-git -C "$repo_root" worktree add "$abs_path" -b "$BRANCH_NAME"
-cd "$abs_path"
-```
-
-### 3. Run Project Setup
-
-**First, check CLAUDE.md** (or AGENTS.md) for project-specific setup instructions. These always take precedence — they know the exact project structure, dependency groups, and subdirectories. If CLAUDE.md specifies setup steps, follow those exactly and skip auto-detection.
-
-**Otherwise, auto-detect and run from the worktree root:**
-
-```bash
-# Node.js
-if [ -f package.json ]; then npm install; fi
-
-# Rust
-if [ -f Cargo.toml ]; then cargo build; fi
-
-# Python (check uv first — uv projects also have pyproject.toml)
-# --all-extras ensures optional dependency groups (e.g. dev, test) are installed
-if [ -f uv.lock ]; then uv sync --all-extras
-elif [ -f requirements.txt ]; then uv pip install -r requirements.txt
-elif [ -f pyproject.toml ]; then uv sync --all-extras
-fi
-
-# Go
-if [ -f go.mod ]; then go mod download; fi
-```
-
-### 4. Verify Clean Baseline
-
-Run tests to ensure worktree starts clean:
-
-```bash
-# Examples - use project-appropriate command
-npm test
-cargo test
-uv run pytest  # Python (uv projects)
-go test ./...
-```
-
-**If tests fail:** Report failures, ask whether to proceed or investigate.
-
-**If tests pass:** Report ready.
-
-### 5. Report Location
-
-```
-Worktree ready at <full-path>
-Tests passing (<N> tests, 0 failures)
-Ready to implement <feature-name>
-```
-
-## Quick Reference
-
-| Situation | Action |
-|-----------|--------|
-| `.worktrees/` exists | Use it (verify ignored) |
-| `worktrees/` exists | Use it (verify ignored) |
-| Both exist | Use `.worktrees/` |
-| Neither exists | Check CLAUDE.md → Ask user |
-| Directory not ignored | Add to .gitignore + commit |
-| Tests fail during baseline | Report failures + ask |
-| No package.json/Cargo.toml | Skip dependency install |
-
-## Common Mistakes
-
-### Skipping ignore verification
-
-- **Problem:** Worktree contents get tracked, pollute git status
-- **Fix:** Always use `git check-ignore` before creating project-local worktree
-
-### Assuming directory location
-
-- **Problem:** Creates inconsistency, violates project conventions
-- **Fix:** Follow priority: existing > CLAUDE.md > ask
-
-### Proceeding with failing tests
-
-- **Problem:** Can't distinguish new bugs from pre-existing issues
-- **Fix:** Report failures, get explicit permission to proceed
-
-### Using relative paths for worktree commands
-
-- **Problem:** If CWD isn't the repo root, `git worktree add` and subsequent commands (e.g. `uv run pytest`) resolve paths incorrectly
-- **Fix:** Capture `repo_root` via `git rev-parse --show-toplevel` and use absolute paths throughout
-
-### Hardcoding setup commands
-
-- **Problem:** Breaks on projects using different tools
-- **Fix:** Auto-detect from project files (package.json, etc.)
-
-## Example Workflow
-
-```
-You: I'm using the using-git-worktrees skill to set up an isolated workspace.
-
-[Check .worktrees/ - exists]
-[Verify ignored - git check-ignore confirms .worktrees/ is ignored]
-[Create worktree: git worktree add .worktrees/auth -b feature/auth]
-[Run npm install]
-[Run npm test - 47 passing]
-
-Worktree ready at /Users/you/myproject/.worktrees/auth
-Tests passing (47 tests, 0 failures)
-Ready to implement auth feature
-```
-
-## Red Flags
-
-**Never:**
-- Create worktree without verifying it's ignored (project-local)
-- Skip baseline test verification
-- Proceed with failing tests without asking
-- Assume directory location when ambiguous
-- Skip CLAUDE.md check
-
-**Always:**
-- Follow directory priority: existing > CLAUDE.md > ask
-- Verify directory is ignored for project-local
-- Auto-detect and run project setup
-- Verify clean test baseline
+Never delete the branch before removing the worktree.
 
 ## Integration
 
 **Called by:**
-- **subagent-driven-development** - REQUIRED before executing any tasks
-- **executing-plans** - REQUIRED before executing any tasks
+- **subagent-driven-development** — REQUIRED before executing any tasks
+- **executing-plans** — REQUIRED before executing any tasks
 - Any skill needing isolated workspace
 
 **Pairs with:**
-- **finishing-a-development-branch** - REQUIRED for cleanup after work complete
+- **finishing-a-development-branch** — REQUIRED for cleanup after work complete

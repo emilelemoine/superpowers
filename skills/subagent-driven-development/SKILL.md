@@ -11,6 +11,10 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
 
+## Step 0: Verify Execution Strategy
+
+Before starting, read the plan header. If it contains a `For agentic workers` line specifying a different execution skill (e.g., `superpowers:executing-plans`), **switch to that skill instead** — the code-planner chose the strategy based on task coupling analysis. Only override if the user explicitly requests this skill.
+
 ## When to Use
 
 ```dot

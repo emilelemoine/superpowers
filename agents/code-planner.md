@@ -225,10 +225,12 @@ Agent (general-purpose):
 
 ### Phase 8 — Execution Handoff
 
-After writing the plan, present execution options to the user:
+After writing the plan, present execution to the user. Lead with the skill you chose in Phase 4 — it was chosen for a reason. Mention the alternative only as an override:
 
-- **Subagent-Driven (this session):** Dispatch fresh subagent per task, review between tasks
-- **Parallel Session (separate):** Open new session in worktree with executing-plans skill
+> **Recommended:** [chosen skill] — [one-line rationale from Phase 4]
+> **Alternative:** [other skill] — if you prefer [the other trade-off]
+
+Do NOT present both options as equally valid. The Phase 4 analysis already made the call.
 
 ## Behavioral Guidelines
 

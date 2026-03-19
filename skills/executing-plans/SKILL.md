@@ -13,6 +13,10 @@ Load plan, review critically, execute all tasks, report when complete.
 
 **Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
 
+## Step 0: Verify Execution Strategy
+
+Before starting, read the plan header. If it contains a `For agentic workers` line specifying a different execution skill (e.g., `superpowers:subagent-driven-development`), **switch to that skill instead** — the code-planner chose the strategy based on task coupling analysis. Only override if the user explicitly requests this skill.
+
 ## The Process
 
 ### Step 1: Load and Review Plan

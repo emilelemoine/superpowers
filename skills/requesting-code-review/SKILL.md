@@ -1,43 +1,53 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: Use when completing ad-hoc work outside a structured plan, or when stuck and wanting a fresh perspective
 ---
 
 # Requesting Code Review
 
-Dispatch superpowers:code-reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
+Dispatch a superpowers:branch-reviewer subagent to catch issues before they cascade. The reviewer gets the branch diff for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
 **Core principle:** Review early, review often.
 
-## When to Request Review
+## When to Use
 
-**Mandatory:**
-- After completing major feature
-- Before merge to main
+Use this for **ad-hoc work** — tasks done outside a structured plan. For plan-driven work, `superpowers:finishing-a-development-branch` already handles the pre-merge review.
 
-**Optional but valuable:**
-- When stuck (fresh perspective)
+**Good times to request review:**
+- After completing a feature or significant change
+- When stuck (fresh perspective helps)
 - Before refactoring (baseline check)
-- After fixing complex bug
+- After fixing a complex bug
 
 ## How to Request
 
-**1. Get git SHAs:**
+**1. Determine the base:**
+
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
-HEAD_SHA=$(git rev-parse HEAD)
+BASE_SHA=$(git merge-base HEAD main)
 ```
 
-**2. Dispatch code-reviewer subagent:**
+**2. Dispatch branch-reviewer subagent:**
 
-Use Agent tool with superpowers:code-reviewer type, fill template at `code-reviewer.md`
+```
+Agent:
+  subagent_type: superpowers:branch-reviewer
+  description: "Review ad-hoc work on <branch-name>"
+  prompt: |
+    Review this feature branch for merge readiness.
 
-**Placeholders:**
-- `{WHAT_WAS_IMPLEMENTED}` - What you just built
-- `{PLAN_OR_REQUIREMENTS}` - What it should do
-- `{BASE_SHA}` - Starting commit
-- `{HEAD_SHA}` - Ending commit
-- `{DESCRIPTION}` - Brief summary
+    Branch: <branch-name>
+    Base: main (SHA: <BASE_SHA>)
+
+    Run these commands to get the changes:
+      git diff --stat <BASE_SHA>..HEAD
+      git diff <BASE_SHA>..HEAD
+
+    Review for bugs, design issues, refactoring opportunities, efficiency
+    improvements, and code quality. Read surrounding code (callers,
+    interfaces, related modules) whenever the diff alone isn't enough
+    context to judge.
+```
 
 **3. Act on feedback:**
 - Fix Critical issues immediately
@@ -48,40 +58,29 @@ Use Agent tool with superpowers:code-reviewer type, fill template at `code-revie
 ## Example
 
 ```
-[Just completed Task 2: Add verification function]
+[Just completed a verification feature on branch fix/verify-index]
 
-You: Let me request code review before proceeding.
+You: Let me request code review before merging.
 
-BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
-HEAD_SHA=$(git rev-parse HEAD)
+BASE_SHA=$(git merge-base HEAD main)
 
-[Dispatch superpowers:code-reviewer subagent]
-  WHAT_WAS_IMPLEMENTED: Verification and repair functions for conversation index
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/plans/deployment-plan.md
-  BASE_SHA: a7981ec
-  HEAD_SHA: 3df7661
-  DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
+[Dispatch superpowers:branch-reviewer subagent]
+  Branch: fix/verify-index
+  Base: main (SHA: a7981ec)
+  Prompt: Review this feature branch...
+    git diff --stat a7981ec..HEAD
+    git diff a7981ec..HEAD
 
 [Subagent returns]:
-  Strengths: Clean architecture, real tests
-  Issues:
-    Important: Missing progress indicators
-    Minor: Magic number (100) for reporting interval
-  Assessment: Ready to proceed
+  Summary: Adds verifyIndex() and repairIndex() with 4 issue types.
+  Findings:
+    [QUALITY-1] Missing progress indicators (important)
+    [QUALITY-2] Magic number for reporting interval (minor)
+  Verdict: FIX BEFORE MERGE
 
-You: [Fix progress indicators]
-[Continue to Task 3]
+You: [Fix progress indicators, commit]
+[Proceed to merge via finishing-a-development-branch]
 ```
-
-## Integration with Workflows
-
-**Executing Plans:**
-- Refactor review after each task (via refactor-reviewer subagent)
-- Branch review before merge (via finishing-a-development-branch)
-
-**Ad-Hoc Development:**
-- Review before merge
-- Review when stuck
 
 ## Red Flags
 
@@ -91,9 +90,13 @@ You: [Fix progress indicators]
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback
 
-**If reviewer wrong:**
+**If reviewer is wrong:**
 - Push back with technical reasoning
 - Show code/tests that prove it works
 - Request clarification
 
-See template at: requesting-code-review/code-reviewer.md
+## Integration
+
+**For ad-hoc work:** Use this skill, then `superpowers:finishing-a-development-branch` to merge.
+
+**For plan-driven work:** `superpowers:executing-plans` handles per-task refactor review; `superpowers:finishing-a-development-branch` handles the pre-merge branch review. You typically don't need this skill.

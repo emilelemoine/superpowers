@@ -9,7 +9,6 @@ This is a fork of [obra/superpowers](https://github.com/obra/superpowers), maint
 - `skills/` — Skill definitions (SKILL.md files) that Claude Code loads as slash commands and auto-triggered workflows (brainstorming, TDD, debugging, planning, etc.)
 - `agents/` — Subagent definitions (.md files) used by skills to dispatch specialized workers (code-planner, branch-reviewer, worktree-setup, org-roam)
 - `hooks/` — Claude Code hooks (session-start) that inject context at conversation start
-- `commands/` — Slash command definitions (brainstorm, execute-plan, write-plan)
 - `docs/` — Documentation, specs, and platform-specific setup guides
 - `tests/` — Integration tests that run real Claude Code sessions in headless mode
 

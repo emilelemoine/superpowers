@@ -107,12 +107,13 @@ Skip any step = lying, not verifying
 
 ## Why This Matters
 
-From 24 failure memories:
-- your human partner said "I don't believe you" - trust broken
-- Undefined functions shipped - would crash
-- Missing requirements shipped - incomplete features
-- Time wasted on false completion → redirect → rework
-- Violates: "Honesty is a core value. If you lie, you'll be replaced."
+Verification failures have real consequences:
+- Undefined functions shipped — would crash at runtime
+- Missing requirements shipped — incomplete features
+- Time wasted on false completion, redirect, rework
+- Trust broken when claims don't match reality
+
+Verification is about integrity. Claims without evidence are not efficiency — they are dishonesty.
 
 ## When To Apply
 

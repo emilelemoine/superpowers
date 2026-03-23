@@ -75,7 +75,7 @@ Step 3: Integration tests    [sequential, depends: 2a, 2b, 2c]
 
 | Step | File | Purpose | Commits |
 |------|------|---------|---------|
-| 1 | `YYYY-MM-DD-<feature>-step-01.md` | Foundation | 3 |
+| 1 | `YYYY-MM-DD-<feature>-step-1.md` | Foundation | 3 |
 | 2a | `YYYY-MM-DD-<feature>-step-2a.md` | API layer | 2 |
 | ... | ... | ... | ... |
 ```

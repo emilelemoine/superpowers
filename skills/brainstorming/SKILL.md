@@ -109,6 +109,28 @@ digraph brainstorming {
 
 ## After the Design
 
+**Parallelization:**
+
+Before writing the spec, identify which parts of the system can be built independently:
+
+- What shared foundations must exist before anything else? (data models, types, interfaces)
+- Which work streams are independent once the foundation exists?
+- What are the contracts/interfaces between streams?
+- What must wait until all streams are complete? (integration tests, final assembly)
+
+Add a "## Parallelization" section to the design doc with these findings. Example:
+
+```markdown
+## Parallelization
+
+The data models and shared types are foundational — everything depends on them.
+Once those exist, the API layer, background workers, and UI can be built independently.
+They communicate through the data models only, no direct coupling.
+Integration tests should run after all three are merged.
+```
+
+If the project is small enough that everything is sequential, state that explicitly: "All work is sequential — no parallelization opportunities." The code-planner reads this section and translates it into the DAG roadmap.
+
 **Documentation:**
 
 - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`

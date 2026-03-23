@@ -13,11 +13,17 @@ Load plan, review critically, execute all tasks using a TDD loop, commit after e
 
 ## The Process
 
+### Step 0: Set Up Worktree
+
+1. Check if already in a worktree: `git rev-parse --show-toplevel` — if the path contains `.worktrees/`, you're already in one; proceed to Step 1
+2. If not in a worktree and not on main/master, you're on a feature branch in the main repo — proceed to Step 1 without worktree setup
+3. If on main/master, use `superpowers:using-git-worktrees` to create an isolated workspace before proceeding
+
 ### Step 1: Load and Review Plan
 
 1. Read plan file
 2. Review critically — identify any questions or concerns about the plan
-3. If concerns: Raise them with your human partner before starting
+3. If concerns: Raise them with the user before starting
 4. If no concerns: Create tasks (one per plan task) and proceed
 
 ### Step 2: Execute Tasks
@@ -117,6 +123,5 @@ When executing a DAG roadmap with parallel steps:
 ## Integration
 
 **Required workflow skills:**
-- **superpowers:using-git-worktrees** — REQUIRED: Set up isolated workspace before starting
 - **superpowers:writing-plans** — Format reference for implementation plans
 - **superpowers:finishing-a-development-branch** — Complete development after all tasks

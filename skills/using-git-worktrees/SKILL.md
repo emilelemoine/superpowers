@@ -56,12 +56,13 @@ digraph handle_report {
 **Worktree cleanup order** (always, no exceptions):
 
 ```bash
-cd <main-repo>
-git worktree remove <path>
-git branch -d <branch>
+git -C <main-repo> worktree remove <path>
+git -C <main-repo> branch -d <branch>
 ```
 
 Never delete the branch before removing the worktree.
+
+**Always use `git -C <dir>`** instead of `cd <dir> && git ...` to avoid permission prompts for compound shell commands.
 
 ## Integration
 

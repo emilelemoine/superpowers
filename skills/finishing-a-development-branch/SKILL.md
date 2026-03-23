@@ -1,15 +1,17 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
+description: Use when implementation is complete, all tests pass, and you need to integrate the work - defaults to local merge unless the project CLAUDE.md specifies otherwise
 ---
 
 # Finishing a Development Branch
 
 ## Overview
 
-Guide completion of development work by presenting clear options and handling chosen workflow.
+Guide completion of development work. **Default action is local merge** — no menu, no questions asked.
 
-**Core principle:** Verify tests → Code review → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → Code review → Merge locally → Clean up.
+
+**Override:** If the project-level CLAUDE.md contains explicit instructions about how to finish branches (e.g. "create a PR", "push for review"), follow those instead of the default merge. Only then present options or follow the project's specified workflow.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -151,9 +153,33 @@ npm test / cargo test / pytest / go test ./...
 
 If tests fail, fix before continuing. Don't proceed with broken tests.
 
-### Step 7: Present Options
+### Step 7: Merge Locally (Default)
 
-Present exactly these 4 options:
+**Unless the project CLAUDE.md specifies a different workflow**, proceed directly with a local merge. Do not present a menu — just merge.
+
+Cleanup worktree first (Step 9), then merge and delete branch:
+
+```bash
+# 1. Remove worktree (Step 9)
+git -C <main-repo> worktree remove <worktree-path>
+
+# 2. Switch to base branch and pull latest
+git -C <main-repo> checkout <base-branch>
+git -C <main-repo> pull
+
+# 3. Merge feature branch
+git -C <main-repo> merge <feature-branch>
+
+# 4. Verify tests on merged result
+<test command>
+
+# 5. If tests pass, delete feature branch
+git -C <main-repo> branch -d <feature-branch>
+```
+
+### Step 7-alt: Present Options (only when project CLAUDE.md overrides default)
+
+If the project CLAUDE.md specifies a non-merge workflow, or if you cannot determine the right action from it, present these options:
 
 ```
 Implementation complete. What would you like to do?
@@ -168,30 +194,11 @@ Which option?
 
 **Don't add explanation** - keep options concise.
 
-### Step 8: Execute Choice
+### Step 8: Execute Choice (only for Step 7-alt)
 
 #### Option 1: Merge Locally
 
-Cleanup worktree first (Step 9), then merge and delete branch:
-
-```bash
-# 1. Leave worktree and remove it (Step 9)
-cd <main-repo>
-git worktree remove <worktree-path>
-
-# 2. Switch to base branch and pull latest
-git checkout <base-branch>
-git pull
-
-# 3. Merge feature branch
-git merge <feature-branch>
-
-# 4. Verify tests on merged result
-<test command>
-
-# 5. If tests pass, delete feature branch
-git branch -d <feature-branch>
-```
+Same as Step 7 above.
 
 #### Option 2: Push and Create PR
 
@@ -237,29 +244,27 @@ Wait for exact confirmation.
 If confirmed, cleanup worktree first (Step 9), then delete branch:
 
 ```bash
-# 1. Leave worktree and remove it (Step 9)
-cd <main-repo>
-git worktree remove <worktree-path>
+# 1. Remove worktree (Step 9)
+git -C <main-repo> worktree remove <worktree-path>
 
 # 2. Delete feature branch
-git checkout <base-branch>
-git branch -D <feature-branch>
+git -C <main-repo> checkout <base-branch>
+git -C <main-repo> branch -D <feature-branch>
 ```
 
 ### Step 9: Cleanup Worktree and Branch
 
 **For Options 1 and 4 only:**
 
-**Cleanup order (always, no exceptions):** `cd <main-repo>` → `git worktree remove <path>` → `git branch -d/-D <branch>`. Never delete the branch before removing the worktree.
+**Cleanup order (always, no exceptions):** `git -C <main-repo> worktree remove <path>` → `git -C <main-repo> branch -d/-D <branch>`. Never delete the branch before removing the worktree.
+
+**Always use `git -C <dir>`** instead of `cd <dir> && git ...` to avoid permission prompts for compound shell commands.
 
 ```bash
-# 1. Leave the worktree
-cd <main-repo>
+# 1. Remove the worktree FIRST
+git -C <main-repo> worktree remove <worktree-path>
 
-# 2. Remove the worktree FIRST
-git worktree remove <worktree-path>
-
-# 3. THEN delete the branch (see Option 1/4 above for the rest)
+# 2. THEN delete the branch (see Option 1/4 above for the rest)
 ```
 
 **For Options 2 and 3:** Keep worktree.
@@ -279,9 +284,9 @@ git worktree remove <worktree-path>
 - **Problem:** Merge broken code, create failing PR
 - **Fix:** Always verify tests before offering options
 
-**Open-ended questions**
-- **Problem:** "What should I do next?" → ambiguous
-- **Fix:** Present exactly 4 structured options
+**Presenting options when not needed**
+- **Problem:** Asking the user what to do when the default is clear
+- **Fix:** Merge locally by default; only present options when project CLAUDE.md overrides
 
 **Skipping code review**
 - **Problem:** Merge without a fresh set of eyes on the diff
@@ -307,8 +312,8 @@ git worktree remove <worktree-path>
 
 **Always:**
 - Verify tests before offering options
-- Dispatch branch-reviewer before presenting options
-- Present exactly 4 options
+- Dispatch branch-reviewer before merging
+- Merge locally by default; only present options when project CLAUDE.md overrides
 - Get typed confirmation for Option 4
 - Clean up worktree for Options 1 & 4 only
 

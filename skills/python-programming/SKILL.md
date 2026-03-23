@@ -9,7 +9,8 @@ description: General guidelines and defaults for Python programming. Use when wo
 - Style: **pythonic**, small modules, clear names, typed where it helps (pyright-friendly).
 - Codebases should be **simple, readable, and easily expandable**.
 - Lint/format: ruff (format + lint) — always env-local, never global
-- **Dev tools** (`ruff`, `pytest`) go in `[dependency-groups].dev` so plain `uv sync` installs them. Invoke via `uv run ruff` / `uv run pytest` (never system-installed versions).
+- **Always invoke Python via `uv run python`**, never `.venv/bin/python` or bare `python`/`python3`. This applies to scripts, dev tools, and one-off commands alike. Invoke dev tools the same way: `uv run ruff`, `uv run pytest` (never system-installed versions). **Exception:** if a project's CLAUDE.md specifies a different invocation method, follow that instead — project-level instructions always take precedence.
+- **Dev tools** (`ruff`, `pytest`) go in `[dependency-groups].dev` so plain `uv sync` installs them.
 - If a project uses `[project.optional-dependencies]` instead, document the setup command in CLAUDE.md (e.g. `uv sync --extra dev`) — plain `uv sync` won't install them.
 - Designed to scale: single GPU → **DDP** without rewrites; CPU parallelism where useful.
 - Prefer "thin scripts, real code in `src/`"

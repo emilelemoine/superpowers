@@ -142,7 +142,11 @@ Scope is deliberately narrow — one task's changes, not the whole branch. The b
 - `docs/README.codex.md` — update skill references
 - `docs/testing.md` — update to reflect retired skill and new test targets
 - `tests/subagent-driven-dev/` — retire or replace integration tests
+- `tests/explicit-skill-requests/` — retire or replace SDD trigger tests
 - `tests/claude-code/test-subagent-driven-development*.sh` — retire or replace
+- `tests/claude-code/run-skill-tests.sh` — update test index
+- `tests/claude-code/README.md` — update test documentation
+- `CLAUDE.md` (project root) — update testing example to reference new test targets
 
 Historical docs (release notes, old plan files) are intentionally left unchanged — they describe what happened at the time.
 

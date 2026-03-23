@@ -9,7 +9,7 @@ Use this template when dispatching a refactor reviewer subagent after each task'
 **Dispatch after:** Tests pass for the current task (green phase complete).
 
 ```
-Agent tool (general-purpose):
+Agent tool (general-purpose, model: opus):
   description: "Refactor review for Task N: [task name]"
   prompt: |
     You are reviewing a single task's changes for refactoring opportunities.
@@ -20,9 +20,9 @@ Agent tool (general-purpose):
 
     ## Changes Made
 
-    Run this command to see the diff:
+    Run this command to see the diff (uncommitted changes vs last commit):
     ```bash
-    git diff [BASE_SHA]..HEAD
+    git diff HEAD
     ```
 
     ## Test Results

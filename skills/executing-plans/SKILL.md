@@ -22,7 +22,7 @@ Load plan, review critically, execute all tasks using a TDD loop with refactor r
 
 ### Step 2: Execute Tasks
 
-For each task, follow this loop:
+For each task, follow this loop. If a task has no testable code (e.g., documentation, configuration, markdown), skip the Red and Green phases — apply the changes, dispatch the refactor reviewer on the diff, then commit.
 
 #### Red
 
@@ -39,7 +39,7 @@ For each task, follow this loop:
 #### Refactor
 
 1. Get the diff for this task: `git diff HEAD`
-2. Dispatch a refactor reviewer subagent (see `./refactor-reviewer-prompt.md`) scoped to this task's diff
+2. Dispatch a refactor reviewer subagent (general-purpose Agent tool, model: opus — see `./refactor-reviewer-prompt.md` for the prompt template) scoped to this task's diff
 3. If the reviewer returns suggestions:
    - Apply accepted suggestions
    - Run the formatter on changed files

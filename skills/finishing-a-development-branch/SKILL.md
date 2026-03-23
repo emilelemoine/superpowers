@@ -252,20 +252,9 @@ git -C <main-repo> checkout <base-branch>
 git -C <main-repo> branch -D <feature-branch>
 ```
 
-### Step 9: Cleanup Worktree and Branch
+### Step 9: Cleanup
 
-**For Options 1 and 4 only:**
-
-**Cleanup order (always, no exceptions):** `git -C <main-repo> worktree remove <path>` → `git -C <main-repo> branch -d/-D <branch>`. Never delete the branch before removing the worktree.
-
-**Always use `git -C <dir>`** instead of `cd <dir> && git ...` to avoid permission prompts for compound shell commands.
-
-```bash
-# 1. Remove the worktree FIRST
-git -C <main-repo> worktree remove <worktree-path>
-
-# 2. THEN delete the branch (see Option 1/4 above for the rest)
-```
+**For Options 1 and 4 only:** Clean up worktree and branch per `superpowers:using-git-worktrees` (worktree remove first, then branch delete, always `git -C`).
 
 **For Options 2 and 3:** Keep worktree.
 

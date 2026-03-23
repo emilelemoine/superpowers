@@ -103,13 +103,15 @@ Integration tests should run after all three are merged.
 
 ### Refactor Reviewer Subagent
 
-A new, lightweight subagent prompt. Receives:
+A new, lightweight subagent dispatched via the Agent tool. Lives at `skills/executing-plans/refactor-reviewer-prompt.md` (colocated with the skill that uses it, following existing convention).
+
+Receives:
 
 - The task description (from the plan).
 - The diff of changes made for this task.
 - The test results (passing).
 
-Returns:
+Returns (free-form markdown, same pattern as existing reviewer prompts):
 
 - Refactoring suggestions (if any), each with a rationale.
 - Verdict: clean / minor suggestions / needs rework.
@@ -125,18 +127,18 @@ Scope is deliberately narrow — one task's changes, not the whole branch. The b
 - `skills/subagent-driven-development/code-quality-reviewer-prompt.md`
 
 **Modified:**
-- `skills/writing-plans/SKILL.md` — updated plan format (DAG roadmap, self-contained step files)
+- `skills/writing-plans/SKILL.md` — updated plan format (DAG roadmap, self-contained step files); remove execution strategy decision logic (there is only one execution skill now)
 - `skills/executing-plans/SKILL.md` — rewritten with TDD loop + refactor subagent + format step
 - `skills/brainstorming/SKILL.md` — adds parallelization section to design doc
-- `agents/code-planner.md` — DAG-aware, produces roadmap + self-contained step files, removes execution strategy decision
-- `skills/dispatching-parallel-agents/SKILL.md` — update references to removed subagent-driven-development
+- `agents/code-planner.md` — DAG-aware, produces roadmap + self-contained step files; remove Phase 4 execution strategy decision (there is only one execution skill now)
+- `skills/finishing-a-development-branch/SKILL.md` — remove stale reference to subagent-driven-development ("Called by: subagent-driven-development")
 
 **Unchanged:**
-- `skills/finishing-a-development-branch/SKILL.md`
 - `agents/branch-reviewer.md`
 - `skills/using-git-worktrees/SKILL.md`
 - `agents/worktree-setup.md`
 - `skills/test-driven-development/SKILL.md`
+- `skills/requesting-code-review/SKILL.md` — still used by branch-reviewer in finishing-a-development-branch; unaffected by this change
 
 **New:**
-- Refactor-reviewer subagent prompt (in `skills/executing-plans/` or `agents/`)
+- `skills/executing-plans/refactor-reviewer-prompt.md` — lightweight refactor reviewer subagent prompt

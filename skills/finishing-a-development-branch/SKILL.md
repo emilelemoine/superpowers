@@ -318,4 +318,4 @@ git worktree remove <worktree-path>
 - **executing-plans** — After all tasks complete
 
 **Pairs with:**
-- **using-git-worktrees** - Cleans up worktree created by that skill
+- **using-git-worktrees** — Cleans up worktree created by that skill

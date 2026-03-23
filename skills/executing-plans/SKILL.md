@@ -78,6 +78,14 @@ Subagents are used only for support tasks — the main session writes all code:
 - **Worktree setup** — at the start of a session (via superpowers:using-git-worktrees)
 - **Branch review** — at the end (via superpowers:finishing-a-development-branch)
 
+## Parallel Steps
+
+When executing a DAG roadmap with parallel steps:
+- Parallel steps are user-managed — each runs in a separate Claude session with its own worktree
+- This skill handles one step at a time; parallelism comes from running multiple sessions
+- Each step file is self-contained; no shared state between parallel sessions
+- Sequential steps must be merged to main before their dependents can begin
+
 ## When to Stop and Ask for Help
 
 **STOP executing immediately when:**

@@ -1,13 +1,13 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute — follows TDD loop with refactor review after each task
+description: Use when you have a written implementation plan to execute — follows TDD loop for each task
 ---
 
 # Executing Plans
 
 ## Overview
 
-Load plan, review critically, execute all tasks using a TDD loop with refactor review, commit after each task.
+Load plan, review critically, execute all tasks using a TDD loop, commit after each task.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
@@ -22,7 +22,7 @@ Load plan, review critically, execute all tasks using a TDD loop with refactor r
 
 ### Step 2: Execute Tasks
 
-For each task, follow this loop. If a task has no testable code (e.g., documentation, configuration, markdown), skip the Red and Green phases — apply the changes, dispatch the refactor reviewer on the diff, then commit.
+For each task, follow this loop. If a task has no testable code (e.g., documentation, configuration, markdown), skip the Red and Green phases — apply the changes, then commit. Optionally dispatch the refactor reviewer if the changes were complex.
 
 #### Red
 
@@ -36,8 +36,15 @@ For each task, follow this loop. If a task has no testable code (e.g., documenta
 2. Run the project's formatter on the changed files
 3. Run the test — verify it passes
 
-#### Refactor
+#### Refactor (optional)
 
+Dispatch a refactor reviewer when:
+- The implementation deviated significantly from the plan
+- The task was complex enough to warrant a second look
+
+The branch-reviewer at merge time catches the same issues with better whole-branch context. For plan-driven tasks with complete code, per-task review rarely adds value.
+
+**When dispatching:**
 1. Get the diff for this task: `git diff HEAD`
 2. Dispatch a refactor reviewer subagent (general-purpose Agent tool, model: opus — see `./refactor-reviewer-prompt.md` for the prompt template) scoped to this task's diff
 3. If the reviewer returns suggestions:
@@ -66,7 +73,7 @@ After all tasks complete and verified:
 
 Subagents are used only for support tasks — the main session writes all code:
 
-- **Refactor review** — after each task's green phase, scoped to that task's diff (see `./refactor-reviewer-prompt.md`)
+- **Refactor review** — optionally after a task's green phase, scoped to that task's diff (see `./refactor-reviewer-prompt.md`)
 - **Research / context gathering** — when you need to understand existing code without polluting your context
 - **Worktree setup** — at the start of a session (via superpowers:using-git-worktrees)
 - **Branch review** — at the end (via superpowers:finishing-a-development-branch)
@@ -92,7 +99,7 @@ Subagents are used only for support tasks — the main session writes all code:
 ## Remember
 - Review plan critically first
 - Follow plan steps exactly
-- Red-Green-Refactor for every task
+- Red-Green for every task, Refactor when warranted
 - Run the formatter after every edit
 - Don't skip verifications
 - Commit after each task

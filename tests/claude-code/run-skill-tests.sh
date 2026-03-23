@@ -57,10 +57,10 @@ while [[ $# -gt 0 ]]; do
             echo "  --help, -h           Show this help"
             echo ""
             echo "Tests:"
-            echo "  test-subagent-driven-development.sh  Test skill loading and requirements"
+            echo "  (none yet — executing-plans tests coming soon)"
             echo ""
             echo "Integration Tests (use --integration):"
-            echo "  test-subagent-driven-development-integration.sh  Full workflow execution"
+            echo "  (none yet — executing-plans integration test coming soon)"
             exit 0
             ;;
         *)
@@ -73,12 +73,12 @@ done
 
 # List of skill tests to run (fast unit tests)
 tests=(
-    "test-subagent-driven-development.sh"
+    # TODO: Add executing-plans skill test
 )
 
 # Integration tests (slow, full execution)
 integration_tests=(
-    "test-subagent-driven-development-integration.sh"
+    # TODO: Add executing-plans integration test
 )
 
 # Add integration tests if requested

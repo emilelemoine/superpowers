@@ -40,20 +40,74 @@ This structure informs the task decomposition. Each task should produce self-con
 - "Run the tests and make sure they pass" - step
 - "Commit" - step
 
-## Plan Document Header
+## Plan Structure: DAG Roadmap + Self-Contained Step Files
 
-**Every plan MUST start with this header:**
+### When to split
+
+- **4 or fewer commits:** Write a single plan file
+- **More than 4 commits:** Split into a DAG roadmap + self-contained step files
+
+### Roadmap file
+
+`docs/plans/YYYY-MM-DD-<feature>-roadmap.md` — the DAG of steps with explicit dependency and parallelism markers:
+
+```markdown
+# Feature X — Roadmap
+
+> **For agentic workers:** REQUIRED: Use superpowers:executing-plans to implement each step below.
+
+**Goal:** [One sentence]
+**Architecture:** [2-3 sentences]
+**Tech Stack:** [Key technologies]
+**Design doc:** [Path to design doc]
+
+---
+
+## DAG
+
+Step 1: Foundation (data models, shared types)
+Step 2a: API layer           [parallel, depends: 1]
+Step 2b: Background workers  [parallel, depends: 1]
+Step 2c: UI components       [parallel, depends: 1]
+Step 3: Integration tests    [sequential, depends: 2a, 2b, 2c]
+
+## Steps
+
+| Step | File | Purpose | Commits |
+|------|------|---------|---------|
+| 1 | `YYYY-MM-DD-<feature>-step-01.md` | Foundation | 3 |
+| 2a | `YYYY-MM-DD-<feature>-step-2a.md` | API layer | 2 |
+| ... | ... | ... | ... |
+```
+
+Sequential steps must be merged to main before their dependents can begin. Parallel steps can run simultaneously in separate terminals/sessions, each in its own git worktree.
+
+Do NOT also create the combined single file — the roadmap + step files are the plan.
+
+### Step files
+
+Each step file is a fully self-contained mini-plan. A fresh Claude session can execute it without any other context. Each includes:
+
+- **Header:** Goal, context (how this fits the overall feature), branch name, execution instruction (`superpowers:executing-plans`), merge instruction (`superpowers:finishing-a-development-branch`)
+- **Task list:** Exact file paths, complete code to write, exact commands to run with expected output. Same bite-sized granularity as above.
+- **Format/lint command:** The project-specific formatter to run after each edit (e.g., `ruff format <file> && ruff check --fix <file>`)
+
+### Single-file plan format
+
+For plans with 4 or fewer commits, use a single file with this header:
 
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED: Use superpowers:executing-plans to implement this plan.
 
 **Goal:** [One sentence describing what this builds]
 
 **Architecture:** [2-3 sentences about approach]
 
 **Tech Stack:** [Key technologies/libraries]
+
+**Design doc:** [Path to design doc]
 
 ---
 ```
@@ -114,11 +168,11 @@ After completing each chunk of the plan:
 
 1. Dispatch plan-document-reviewer subagent (see plan-document-reviewer-prompt.md) with precisely crafted review context — never your session history. This keeps the reviewer focused on the plan, not your thought process.
    - Provide: chunk content, path to spec document
-2. If ❌ Issues Found:
+2. If Issues Found:
    - Fix the issues in the chunk
    - Re-dispatch reviewer for that chunk
-   - Repeat until ✅ Approved
-3. If ✅ Approved: proceed to next chunk (or execution handoff if last chunk)
+   - Repeat until Approved
+3. If Approved: proceed to next chunk (or execution handoff if last chunk)
 
 **Chunk boundaries:** Use `## Chunk N: <name>` headings to delimit chunks. Each chunk should be ≤1000 lines and logically self-contained.
 
@@ -133,12 +187,4 @@ After saving the plan:
 
 **"Plan complete and saved to `docs/plans/<filename>.md`. Ready to execute?"**
 
-**Execution path depends on task characteristics:**
-
-Pick one of these two skills for the plan header:
-
-- **superpowers:subagent-driven-development** — Fresh subagent per task with two-stage automated review (spec compliance + code quality). Best when tasks are mostly independent and self-contained, substantial enough to warrant per-task review, or the plan is large enough that context pollution is a risk. Requires subagent support (Claude Code, Codex).
-
-- **superpowers:executing-plans** — Batch execution with human review between batches. Best when tasks are tightly coupled, the plan is short, or continuous context across tasks matters more than isolation. Also the fallback when subagents are not available.
-
-Assess task independence, coupling, and plan size to make this decision.
+Execution always uses `superpowers:executing-plans`. Point the user at the plan file (or roadmap file if split) and let them start execution.

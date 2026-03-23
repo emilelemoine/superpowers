@@ -7,7 +7,7 @@ description: |
 
   <example>
   Context: Brainstorming produced a design doc and the main session spawns this agent.
-  prompt: "Write an implementation plan from the design doc at docs/superpowers/specs/2026-03-04-auth-design.md. Worktree: /path/to/worktree"
+  prompt: "Write an implementation plan from the design doc at docs/specs/2026-03-04-auth-design.md. Worktree: /path/to/worktree"
   <commentary>
   The agent starts with fresh context, reads only the design doc, explores the codebase independently, and writes the plan.
   </commentary>

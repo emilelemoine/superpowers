@@ -91,42 +91,9 @@ Use the `superpowers:writing-plans` skill format. All plans use `superpowers:exe
 
 ### Phase 6 — Plan Review Loop
 
-After completing each chunk of the plan, dispatch a plan-document-reviewer subagent:
+After completing each chunk of the plan, dispatch a plan-document-reviewer subagent using the prompt template at `skills/writing-plans/plan-document-reviewer-prompt.md`.
 
-```
-Agent (general-purpose):
-  description: "Review plan chunk N"
-  prompt: |
-    You are a plan document reviewer. Verify this plan chunk is complete and ready for implementation.
-
-    **Plan chunk to review:** [PLAN_FILE_PATH] - Chunk N only
-    **Spec for reference:** [SPEC_FILE_PATH]
-
-    ## What to Check
-
-    | Category | What to Look For |
-    |----------|------------------|
-    | Completeness | TODOs, placeholders, incomplete tasks, missing steps |
-    | Spec Alignment | Chunk covers relevant spec requirements, no scope creep |
-    | Task Decomposition | Tasks atomic, clear boundaries, steps actionable |
-    | File Structure | Files have clear single responsibilities |
-    | File Size | Would any file grow large enough to be hard to reason about? |
-    | Task Syntax | Checkbox syntax on steps for tracking |
-    | Code | Complete code shown (no "add validation"-style placeholders) |
-
-    ## Output Format
-
-    ## Plan Review - Chunk N
-
-    **Status:** Approved | Issues Found
-
-    **Issues (if any):**
-    - [Task X, Step Y]: [specific issue] - [why it matters]
-
-    **Recommendations (advisory):**
-    - [suggestions that don't block approval]
-```
-
+- Provide: the plan chunk file path and the spec file path
 - If Issues Found: fix, re-dispatch, repeat until Approved
 - If loop exceeds 5 iterations, surface to human for guidance
 
@@ -134,7 +101,7 @@ Agent (general-purpose):
 
 After writing the plan, tell the user the plan is ready and point them at the roadmap file (or single plan file):
 
-> **Plan complete.** Saved to `docs/plans/<filename>.md`. Execute with `superpowers:executing-plans`.
+> **Plan complete.** Saved to `docs/plans/<filename>.md`. Execute with `superpowers:executing-plans` (which starts with worktree setup).
 
 ## Behavioral Guidelines
 

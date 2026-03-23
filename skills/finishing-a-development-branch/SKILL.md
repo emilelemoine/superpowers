@@ -315,8 +315,7 @@ git worktree remove <worktree-path>
 ## Integration
 
 **Called by:**
-- **subagent-driven-development** - After all tasks complete
-- **executing-plans** - After all tasks complete
+- **executing-plans** — After all tasks complete
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill

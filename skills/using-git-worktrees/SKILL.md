@@ -66,7 +66,6 @@ Never delete the branch before removing the worktree.
 ## Integration
 
 **Called by:**
-- **subagent-driven-development** — REQUIRED before executing any tasks
 - **executing-plans** — REQUIRED before executing any tasks
 - Any skill needing isolated workspace
 

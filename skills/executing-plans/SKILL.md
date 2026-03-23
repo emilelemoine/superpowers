@@ -110,5 +110,5 @@ Subagents are used only for support tasks — the main session writes all code:
 
 **Required workflow skills:**
 - **superpowers:using-git-worktrees** — REQUIRED: Set up isolated workspace before starting
-- **superpowers:writing-plans** — Creates the plan this skill executes
+- **superpowers:writing-plans** — Format reference for implementation plans
 - **superpowers:finishing-a-development-branch** — Complete development after all tasks

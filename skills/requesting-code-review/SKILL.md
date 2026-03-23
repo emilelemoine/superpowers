@@ -37,7 +37,8 @@ Agent:
     Review this feature branch for merge readiness.
 
     Branch: <branch-name>
-    Base: main (SHA: <BASE_SHA>)
+    Base: <base-branch> (SHA: <BASE_SHA>)
+    Commits: <N> commits
 
     Run these commands to get the changes:
       git diff --stat <BASE_SHA>..HEAD

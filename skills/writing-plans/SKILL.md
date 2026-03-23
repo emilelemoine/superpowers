@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: Format reference for implementation plans — use superpowers:code-planner to write plans from design docs
+description: Use when writing or reviewing implementation plans — format reference for DAG roadmaps, step files, and task structure
 ---
 
 # Writing Plans — Format Reference

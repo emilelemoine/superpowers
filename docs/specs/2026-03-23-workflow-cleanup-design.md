@@ -28,6 +28,8 @@ Delete `skills/requesting-code-review/code-reviewer.md` (the template file) — 
 
 Scope `requesting-code-review` description to ad-hoc work: "Use when completing ad-hoc work outside a structured plan, or when stuck and wanting a fresh perspective." This eliminates confusion with `finishing-a-development-branch`, which already handles the standard pre-merge review.
 
+Rewrite the "How to Request" section in `requesting-code-review/SKILL.md` to match branch-reviewer's interface. Instead of template placeholders (`{WHAT_WAS_IMPLEMENTED}`, `{BASE_SHA}`, etc.), use the branch-reviewer's input contract: provide branch name, base branch, base SHA, and tell the agent to run `git diff` commands itself. Update the example accordingly.
+
 ### 2. Deduplicate writing-plans and code-planner
 
 **writing-plans → pure format spec**
@@ -50,6 +52,8 @@ Keep:
 
 Remove the inline plan-document-reviewer prompt from `agents/code-planner.md` Phase 6. Replace with a reference to the canonical source: `skills/writing-plans/plan-document-reviewer-prompt.md`.
 
+Note: `plan-document-reviewer-prompt.md` stays in `skills/writing-plans/` as a shared template file. The code-planner references it; writing-plans hosts it. This is intentional — the template is a format artifact, not a process artifact.
+
 ### 3. Parallel Execution Guidance
 
 Add a "Parallel Steps" section to `executing-plans` explaining:
@@ -62,16 +66,20 @@ Add a brief note to the writing-plans roadmap format template explaining this us
 
 ### 4. Fix Worktree Setup Handoff
 
-In `executing-plans`, make worktree setup the explicit first action in Step 1 (not just a footnote in "Integration"):
-- Before loading the plan, check if you're in a worktree
-- If not, trigger `superpowers:using-git-worktrees` to set one up
-- Then load and review the plan
+In `executing-plans`, make worktree setup the explicit first action in Step 0 (before the current Step 1):
+- Add "Step 0: Set Up Worktree" before "Step 1: Load and Review Plan"
+- Check if already in a worktree: `git rev-parse --show-toplevel` — if the path contains the project's worktree directory (e.g., `.worktrees/`), you're already in one
+- If not in a worktree and not on main/master, you're on a feature branch in the main repo — proceed without worktree
+- If on main/master, use `superpowers:using-git-worktrees` to create an isolated workspace before proceeding
+- Remove the worktree reference from the "Integration" footnote section (it's now part of the main process)
 
 In code-planner Phase 7 (Execution Handoff), mention that execution starts with worktree setup.
 
 ### 5. Fix Default Spec Path
 
 In `brainstorming`, change the default spec location from `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` to `docs/specs/YYYY-MM-DD-<topic>-design.md`. The `superpowers/` segment is specific to this repo and doesn't make sense when the plugin is installed in other projects.
+
+This path appears in two places in `brainstorming/SKILL.md`: the checklist item 7 and the "Documentation" subsection. Both must be updated.
 
 ### 6. Consolidate Worktree Cleanup
 
@@ -82,12 +90,12 @@ In `finishing-a-development-branch`:
 - Remove the standalone Step 9 "Cleanup Worktree and Branch" explanation section that duplicates `using-git-worktrees`
 - Add a cross-reference: "Cleanup order per superpowers:using-git-worktrees"
 
-### 7. Remove Deprecated Skill Aliases
+### 7. Remove Deprecated Command Aliases
 
-Delete the following deprecated redirect skills:
-- `superpowers:execute-plan`
-- `superpowers:write-plan`
-- `superpowers:brainstorm`
+Delete the following deprecated redirect commands from the `commands/` directory:
+- `commands/execute-plan.md` (redirects to `superpowers:executing-plans`)
+- `commands/write-plan.md` (redirects to `superpowers:writing-plans`)
+- `commands/brainstorm.md` (redirects to `superpowers:brainstorming`)
 
 These waste context window tokens on every conversation. The renamed skills have been in place long enough.
 
@@ -106,9 +114,10 @@ These waste context window tokens on every conversation. The renamed skills have
 - "NEVER say 'You're absolutely right!'" and all forbidden response phrases
 - "ANY gratitude expression" prohibition
 - "Strange things are afoot at the Circle K" signal phrase
-- "your human partner's rule:" framing throughout
+- "your human partner's rule:" framing throughout (also in Source-Specific Handling section)
 - The "Acknowledging Correct Feedback" section with its exhaustive forbidden/allowed lists
 - "Gracefully Correcting Your Pushback" section (too prescriptive about social dynamics)
+- "your human partner" phrasing throughout — replace with "the user" or equivalent neutral framing
 
 **Replace with toned-down general guidance:**
 - "Be direct — acknowledge correct feedback briefly and move to action, don't be performative"
@@ -141,7 +150,9 @@ In `verification-before-completion`:
 | `skills/receiving-code-review/SKILL.md` | Tone down personality, keep technical core |
 | `skills/systematic-debugging/SKILL.md` | Clean "your human partner" phrasing |
 | `skills/verification-before-completion/SKILL.md` | Clean personal anecdotes |
-| Deprecated skill aliases (3 files) | Delete |
+| `commands/brainstorm.md` | Delete |
+| `commands/execute-plan.md` | Delete |
+| `commands/write-plan.md` | Delete |
 
 ## Parallelization
 

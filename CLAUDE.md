@@ -7,7 +7,7 @@ This is a fork of [obra/superpowers](https://github.com/obra/superpowers), maint
 ## What this repo contains
 
 - `skills/` — Skill definitions (SKILL.md files) that Claude Code loads as slash commands and auto-triggered workflows (brainstorming, TDD, debugging, planning, etc.)
-- `agents/` — Subagent definitions (.md files) used by skills to dispatch specialized workers (code-reviewer, code-planner, branch-reviewer, worktree-setup, org-roam)
+- `agents/` — Subagent definitions (.md files) used by skills to dispatch specialized workers (code-planner, branch-reviewer, worktree-setup, org-roam)
 - `hooks/` — Claude Code hooks (session-start) that inject context at conversation start
 - `commands/` — Slash command definitions (brainstorm, execute-plan, write-plan)
 - `docs/` — Documentation, specs, and platform-specific setup guides
@@ -21,7 +21,7 @@ This is a fork of [obra/superpowers](https://github.com/obra/superpowers), maint
 
 ## Naming convention
 
-Skills and agents from this plugin are namespaced with the `superpowers:` prefix. When writing instructions, agent definitions, or skill references, always use the fully qualified name (e.g. `superpowers:brainstorming`, `superpowers:code-reviewer`, `superpowers:worktree-setup`).
+Skills and agents from this plugin are namespaced with the `superpowers:` prefix. When writing instructions, agent definitions, or skill references, always use the fully qualified name (e.g. `superpowers:brainstorming`, `superpowers:branch-reviewer`, `superpowers:worktree-setup`).
 
 ## Common tasks
 

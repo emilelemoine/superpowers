@@ -27,7 +27,7 @@ You MUST create a task for each of these items and complete them in order:
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Identify parallelization** — what can be built independently? Add a "## Parallelization" section to the design
-7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
 8. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
 9. **User reviews written spec** — ask user to review the spec file before proceeding
 10. **Transition to implementation** — spawn a fresh-context `superpowers:code-planner` agent with only the design doc path
@@ -136,7 +136,7 @@ If the project is small enough that everything is sequential, state that explici
 
 **Documentation:**
 
-- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design (spec) to `docs/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git

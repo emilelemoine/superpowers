@@ -82,7 +82,7 @@ integration_tests=(
 )
 
 # Add integration tests if requested
-if [ "$RUN_INTEGRATION" = true ]; then
+if [ "$RUN_INTEGRATION" = true ] && [ ${#integration_tests[@]} -gt 0 ]; then
     tests+=("${integration_tests[@]}")
 fi
 
@@ -97,7 +97,11 @@ failed=0
 skipped=0
 
 # Run each test
-for test in "${tests[@]}"; do
+if [ ${#tests[@]} -eq 0 ]; then
+    echo "No tests to run."
+    echo ""
+fi
+for test in ${tests[@]+"${tests[@]}"}; do
     echo "----------------------------------------"
     echo "Running: $test"
     echo "----------------------------------------"

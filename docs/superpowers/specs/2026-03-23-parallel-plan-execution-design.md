@@ -131,14 +131,25 @@ Scope is deliberately narrow — one task's changes, not the whole branch. The b
 - `skills/executing-plans/SKILL.md` — rewritten with TDD loop + refactor subagent + format step
 - `skills/brainstorming/SKILL.md` — adds parallelization section to design doc
 - `agents/code-planner.md` — DAG-aware, produces roadmap + self-contained step files; remove Phase 4 execution strategy decision (there is only one execution skill now)
-- `skills/finishing-a-development-branch/SKILL.md` — remove stale reference to subagent-driven-development ("Called by: subagent-driven-development")
+- `skills/finishing-a-development-branch/SKILL.md` — remove stale reference to subagent-driven-development
+- `skills/using-git-worktrees/SKILL.md` — remove subagent-driven-development from "Called by" section
+- `skills/requesting-code-review/SKILL.md` — remove subagent-driven-development from review triggers; still used by branch-reviewer in finishing-a-development-branch
+
+**Peripheral files (stale reference cleanup):**
+- `skills/using-superpowers/references/gemini-tools.md` — remove subagent-driven-development skill reference
+- `skills/using-superpowers/references/codex-tools.md` — remove subagent-driven-development skill reference
+- `README.md` — update plugin workflow description
+- `docs/README.codex.md` — update skill references
+- `docs/testing.md` — update to reflect retired skill and new test targets
+- `tests/subagent-driven-dev/` — retire or replace integration tests
+- `tests/claude-code/test-subagent-driven-development*.sh` — retire or replace
+
+Historical docs (release notes, old plan files) are intentionally left unchanged — they describe what happened at the time.
 
 **Unchanged:**
 - `agents/branch-reviewer.md`
-- `skills/using-git-worktrees/SKILL.md`
 - `agents/worktree-setup.md`
 - `skills/test-driven-development/SKILL.md`
-- `skills/requesting-code-review/SKILL.md` — still used by branch-reviewer in finishing-a-development-branch; unaffected by this change
 
 **New:**
 - `skills/executing-plans/refactor-reviewer-prompt.md` — lightweight refactor reviewer subagent prompt

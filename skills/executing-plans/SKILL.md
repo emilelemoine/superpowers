@@ -1,37 +1,59 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: Use when you have a written implementation plan to execute — follows TDD loop with refactor review after each task
 ---
 
 # Executing Plans
 
 ## Overview
 
-Load plan, review critically, execute all tasks, report when complete.
+Load plan, review critically, execute all tasks using a TDD loop with refactor review, commit after each task.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
-
-**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
-
-## Step 0: Verify Execution Strategy
-
-Before starting, read the plan header. If it contains a `For agentic workers` line specifying a different execution skill (e.g., `superpowers:subagent-driven-development`), **switch to that skill instead** — the code-planner chose the strategy based on task coupling analysis. Only override if the user explicitly requests this skill.
 
 ## The Process
 
 ### Step 1: Load and Review Plan
+
 1. Read plan file
-2. Review critically - identify any questions or concerns about the plan
+2. Review critically — identify any questions or concerns about the plan
 3. If concerns: Raise them with your human partner before starting
 4. If no concerns: Create tasks (one per plan task) and proceed
 
 ### Step 2: Execute Tasks
 
-For each task:
-1. Mark as in_progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
-4. Mark as completed
+For each task, follow this loop:
+
+#### Red
+
+1. Write the failing test (from plan)
+2. Run the project's formatter on the test file
+3. Run the test — verify it fails with the expected error
+
+#### Green
+
+1. Write the implementation (from plan)
+2. Run the project's formatter on the changed files
+3. Run the test — verify it passes
+
+#### Refactor
+
+1. Get the diff for this task: `git diff HEAD`
+2. Dispatch a refactor reviewer subagent (see `./refactor-reviewer-prompt.md`) scoped to this task's diff
+3. If the reviewer returns suggestions:
+   - Apply accepted suggestions
+   - Run the formatter on changed files
+   - Re-run tests to confirm they still pass
+4. If the reviewer returns "clean": proceed
+
+#### Commit
+
+```bash
+git add <changed-files>
+git commit -m "<conventional-prefix>: <description>"
+```
+
+Mark task as completed and move to the next task.
 
 ### Step 3: Complete Development
 
@@ -40,10 +62,19 @@ After all tasks complete and verified:
 - **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
 - Follow that skill to verify tests, present options, execute choice
 
+## Subagent Usage
+
+Subagents are used only for support tasks — the main session writes all code:
+
+- **Refactor review** — after each task's green phase, scoped to that task's diff (see `./refactor-reviewer-prompt.md`)
+- **Research / context gathering** — when you need to understand existing code without polluting your context
+- **Worktree setup** — at the start of a session (via superpowers:using-git-worktrees)
+- **Branch review** — at the end (via superpowers:finishing-a-development-branch)
+
 ## When to Stop and Ask for Help
 
 **STOP executing immediately when:**
-- Hit a blocker (missing dependency, test fails, instruction unclear)
+- Hit a blocker (missing dependency, test fails unexpectedly, instruction unclear)
 - Plan has critical gaps preventing starting
 - You don't understand an instruction
 - Verification fails repeatedly
@@ -56,19 +87,21 @@ After all tasks complete and verified:
 - Partner updates the plan based on your feedback
 - Fundamental approach needs rethinking
 
-**Don't force through blockers** - stop and ask.
+**Don't force through blockers** — stop and ask.
 
 ## Remember
 - Review plan critically first
 - Follow plan steps exactly
+- Red-Green-Refactor for every task
+- Run the formatter after every edit
 - Don't skip verifications
-- Reference skills when plan says to
+- Commit after each task
 - Stop when blocked, don't guess
 - Never start implementation on main/master branch without explicit user consent
 
 ## Integration
 
 **Required workflow skills:**
-- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
-- **superpowers:writing-plans** - Creates the plan this skill executes
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **superpowers:using-git-worktrees** — REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** — Creates the plan this skill executes
+- **superpowers:finishing-a-development-branch** — Complete development after all tasks

@@ -77,9 +77,11 @@ Agent:
     Base: <base-branch> (SHA: <BASE_SHA>)
     Commits: <N> commits
 
-    Run these commands to get the changes:
-      git diff --stat <BASE_SHA>..HEAD
-      git diff <BASE_SHA>..HEAD
+    Worktree path: <worktree-path>
+
+    Run these commands to get the changes (always use git -C, never cd):
+      git -C <worktree-path> diff --stat <BASE_SHA>..HEAD
+      git -C <worktree-path> diff <BASE_SHA>..HEAD
 
     Review for bugs, design issues, refactoring opportunities, efficiency
     improvements, and code quality. Read surrounding code (callers,

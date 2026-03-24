@@ -162,21 +162,25 @@ If tests fail, fix before continuing. Don't proceed with broken tests.
 Cleanup worktree first (Step 9), then merge and delete branch:
 
 ```bash
-# 1. Remove worktree (Step 9)
-git -C <main-repo> worktree remove <worktree-path>
+# 1. Move CWD out of worktree (separate Bash call — never chain cd && git)
+cd <main-repo>
+```
+```bash
+# 2. Remove worktree (Step 9) — CWD is now safely outside
+git worktree remove <worktree-path>
+```
+```bash
+# 3. Switch to base branch and pull latest
+git checkout <base-branch> && git pull
 
-# 2. Switch to base branch and pull latest
-git -C <main-repo> checkout <base-branch>
-git -C <main-repo> pull
+# 4. Merge feature branch
+git merge <feature-branch>
 
-# 3. Merge feature branch
-git -C <main-repo> merge <feature-branch>
-
-# 4. Verify tests on merged result
+# 5. Verify tests on merged result
 <test command>
 
-# 5. If tests pass, delete feature branch
-git -C <main-repo> branch -d <feature-branch>
+# 6. If tests pass, delete feature branch
+git branch -d <feature-branch>
 ```
 
 ### Step 7-alt: Present Options (only when project CLAUDE.md overrides default)
@@ -246,17 +250,24 @@ Wait for exact confirmation.
 If confirmed, cleanup worktree first (Step 9), then delete branch:
 
 ```bash
-# 1. Remove worktree (Step 9)
-git -C <main-repo> worktree remove <worktree-path>
-
-# 2. Delete feature branch
-git -C <main-repo> checkout <base-branch>
-git -C <main-repo> branch -D <feature-branch>
+# 1. Move CWD out of worktree (separate Bash call — never chain cd && git)
+cd <main-repo>
+```
+```bash
+# 2. Remove worktree (Step 9) — CWD is now safely outside
+git worktree remove <worktree-path>
+```
+```bash
+# 3. Delete feature branch
+git checkout <base-branch>
+git branch -D <feature-branch>
 ```
 
 ### Step 9: Cleanup
 
-**For Options 1 and 4 only:** Clean up worktree and branch per `superpowers:using-git-worktrees` (worktree remove first, then branch delete, always `git -C`).
+**For Options 1 and 4 only:** Clean up worktree and branch (worktree remove first, then branch delete).
+
+**Critical:** Before removing a worktree, CWD must be outside it — otherwise deleting the directory crashes the session. Use a **separate Bash call** to `cd <main-repo>` first — never chain `cd && git` (chained commands trigger permission prompts in worktrees).
 
 **For Options 2 and 3:** Keep worktree.
 
@@ -282,6 +293,10 @@ git -C <main-repo> branch -D <feature-branch>
 **Skipping code review**
 - **Problem:** Merge without a fresh set of eyes on the diff
 - **Fix:** Always dispatch branch-reviewer before presenting options
+
+**Removing worktree while CWD is inside it**
+- **Problem:** `git worktree remove` deletes the directory; if the shell's CWD is inside it, the session crashes
+- **Fix:** Use a separate Bash call to `cd <main-repo>` before the remove call — never chain `cd && git` (triggers permission prompts)
 
 **Automatic worktree cleanup**
 - **Problem:** Remove worktree when might need it (Option 2, 3)

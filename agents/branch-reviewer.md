@@ -31,6 +31,8 @@ You'll receive a git diff and the list of changed files. Review them for:
 ## How to investigate
 
 - **Always use `git -C <worktree-path>`** for all git commands. Never use `cd <path> && git ...` — compound `cd && git` commands trigger bare-repository-attack permission prompts.
+- **Don't use Bash to narrate your analysis.** If you're writing `python3 -c "print('...')"` or similar just to explain what code does, write that as text output instead. Reserve Bash for commands that produce meaningful output: git, grep, test runners, or actual code execution that verifies a hypothesis.
+- **Use the project's Python runner.** If the project has a `uv.lock`, use `uv run python` instead of bare `python3`. Check the project's CLAUDE.md for tooling instructions.
 - Start by reading the full diff to understand the scope of changes
 - For each changed file, read surrounding code when you need context (callers, interfaces, types, related modules)
 - Trace data flow through the changes — follow inputs to outputs

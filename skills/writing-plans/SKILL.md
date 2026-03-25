@@ -65,6 +65,8 @@ Step 3: Integration tests    [sequential, depends: 2a, 2b, 2c]
 
 Sequential steps must be merged to main before their dependents can begin. Parallel steps can run simultaneously in separate Claude sessions, each in its own git worktree. Parallelism is user-managed — each session runs one step at a time independently.
 
+**Branch rule:** Parallel steps MUST have separate branch names (e.g. `feat/auth-api`, `feat/auth-ui`). You cannot parallelize work on the same branch. Each parallel step merges independently to main.
+
 Do NOT also create the combined single file — the roadmap + step files are the plan.
 
 ### Step files

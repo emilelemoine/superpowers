@@ -67,6 +67,7 @@ Using extended thinking:
 - Identify risks, edge cases, and sequencing constraints
 - Determine the right commit/branch structure
 - **Translate the design doc's parallelization section into the DAG** — encode what the design already established, don't invent parallelism
+- **Parallel steps need separate branches** — you cannot parallelize work on the same branch. Give each parallel step its own branch name (e.g. `feat/feature-api`, `feat/feature-ui`) so they can merge independently to main
 
 ### Phase 5 — Write the Plan
 

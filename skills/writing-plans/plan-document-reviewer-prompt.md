@@ -25,6 +25,7 @@ Agent tool (general-purpose):
     | File Structure | Files have clear single responsibilities, split by responsibility not layer |
     | File Size | Would any new or modified file likely grow large enough to be hard to reason about as a whole? |
     | Task Syntax | Checkbox syntax (`- [ ]`) on steps for tracking |
+    | Branch Names | Parallel steps have separate branch names (can't parallelize on same branch) |
     | Chunk Size | Each chunk under 1000 lines |
 
     ## CRITICAL

@@ -69,6 +69,13 @@ Using extended thinking:
 - **Translate the design doc's parallelization section into the DAG** — encode what the design already established, don't invent parallelism
 - **Parallel steps need separate branches** — you cannot parallelize work on the same branch. Give each parallel step its own branch name (e.g. `feat/feature-api`, `feat/feature-ui`) so they can merge independently to main
 
+**Minimize plan complexity.** Default to the simplest structure that works:
+- A single-file plan with one step is the ideal — prefer it whenever the work fits
+- Only split into multiple steps when there is a genuine sequencing constraint (e.g. step 2 literally cannot start until step 1 is merged to main)
+- Only introduce parallelism when the design doc explicitly identifies independent work streams AND the work is large enough to justify separate branches
+- Do not inflate commit counts to justify splitting — fewer, slightly larger commits are better than many tiny ones that force a multi-step plan
+- When in doubt, err toward fewer steps. A single step with 6 commits is better than a 3-step DAG with 2 commits each
+
 ### Phase 5 — Write the Plan
 
 Use the `superpowers:writing-plans` skill format. All plans use `superpowers:executing-plans` for execution.
@@ -77,8 +84,8 @@ Use the `superpowers:writing-plans` skill format. All plans use `superpowers:exe
 (User preferences for plan location override this default)
 
 **Splitting rules:**
-- **4 or fewer commits:** Write a single plan file
-- **More than 4 commits:** Split into DAG roadmap + self-contained step files (see writing-plans skill for format)
+- **Default to a single plan file.** Most features fit in one step — use it unless there's a real reason not to.
+- **Only split into DAG roadmap + step files** when there are genuinely independent work streams that benefit from parallel execution in separate worktrees, OR when the plan is large enough (many commits across distinct subsystems) that a single file would be unwieldy.
 
 **Each step file is self-contained:** A fresh Claude session can execute it without any other context. Include goal, context, branch name, task list with complete code, format/lint command, execution instruction (`superpowers:executing-plans`), and merge instruction (`superpowers:finishing-a-development-branch`).
 

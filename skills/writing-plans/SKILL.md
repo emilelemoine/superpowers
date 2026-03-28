@@ -27,8 +27,9 @@ Assume the implementer is a skilled developer who knows almost nothing about the
 
 ### When to split
 
-- **4 or fewer commits:** Write a single plan file
-- **More than 4 commits:** Split into a DAG roadmap + self-contained step files
+- **Default to a single plan file.** Most features fit in one step — prefer this unless there's a real reason to split.
+- **Only split into DAG roadmap + step files** when there are genuinely independent work streams that benefit from parallel execution in separate worktrees, OR when the plan is large enough (many commits across distinct subsystems) that a single file would be unwieldy.
+- Do not inflate commit counts or invent parallelism to justify splitting. Fewer steps is always better.
 
 ### Roadmap file
 

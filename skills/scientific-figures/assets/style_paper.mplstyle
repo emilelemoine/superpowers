@@ -1,0 +1,78 @@
+# style_paper.mplstyle — opt-in matplotlib stylesheet for publication figures.
+#
+# Activate in a script:
+#   import matplotlib.pyplot as plt
+#   plt.style.use("path/to/style_paper.mplstyle")
+#
+# Designed to work with the scientific-figures skill conventions.
+# Override per-project via figure_style.yaml; see references/project-style.md.
+
+# ---- Figure --------------------------------------------------------------
+figure.figsize     : 6.5, 4.0
+figure.dpi         : 100
+figure.facecolor   : white
+figure.edgecolor   : white
+figure.constrained_layout.use : True
+
+# ---- Saving --------------------------------------------------------------
+savefig.dpi        : 400
+savefig.bbox       : tight
+savefig.facecolor  : white
+savefig.edgecolor  : white
+savefig.format     : pdf
+
+# ---- Font ----------------------------------------------------------------
+# Roboto is the user's default. matplotlib falls back gracefully if absent.
+font.family        : sans-serif
+font.sans-serif    : Roboto, Arial, DejaVu Sans
+font.size          : 9
+
+# ---- Axes ----------------------------------------------------------------
+axes.titlesize     : 10
+axes.titleweight   : normal
+axes.labelsize     : 9
+axes.labelweight   : normal
+axes.labelcolor    : "#1A242F"
+axes.edgecolor     : "#1A242F"
+axes.linewidth     : 0.8
+axes.spines.top    : False
+axes.spines.right  : False
+axes.grid          : True
+axes.axisbelow     : True
+
+# ---- Grid ----------------------------------------------------------------
+grid.color         : "#F2EEEB"
+grid.linewidth     : 0.4
+grid.linestyle     : -
+
+# ---- Ticks ---------------------------------------------------------------
+xtick.labelsize    : 8
+ytick.labelsize    : 8
+xtick.color        : "#1A242F"
+ytick.color        : "#1A242F"
+xtick.direction    : out
+ytick.direction    : out
+xtick.major.size   : 3
+ytick.major.size   : 3
+xtick.minor.visible : False
+ytick.minor.visible : False
+
+# ---- Legend --------------------------------------------------------------
+legend.frameon     : False
+legend.fontsize    : 8
+legend.title_fontsize : 8
+
+# ---- Lines & markers -----------------------------------------------------
+lines.linewidth    : 1.5
+lines.markersize   : 4
+lines.markeredgewidth : 0
+
+# ---- Color cycle (Okabe-Ito CB-safe default) -----------------------------
+# Overridden by figure_style.yaml palette when a project declares one.
+axes.prop_cycle    : cycler('color', ['0072B2', 'D55E00', '009E73', 'CC79A7', 'F0E442', '56B4E9', 'E69F00', '000000'])
+
+# ---- Image / colormap defaults -------------------------------------------
+image.cmap         : viridis
+
+# ---- Errorbar ------------------------------------------------------------
+errorbar.capsize   : 3

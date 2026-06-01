@@ -1,0 +1,75 @@
+# figure_style.yaml — copy this to your project root and customize.
+#
+# All fields are optional. Anything you omit falls back to the
+# scientific-figures skill defaults (Okabe-Ito, viridis, Roboto, white bg).
+#
+# Schema reference: references/project-style.md inside the skill.
+
+font:
+  family: "Roboto"
+  size_base: 9
+  size_title: 11
+  size_strip: 10
+
+palette:
+  # Qualitative / categorical — for unordered groups.
+  # Keep to <= 8 colors. Verify CB-safety with colorspace::deutan() (R)
+  # or colorspacious (Python) before publication.
+  categorical:
+    - "#63BF9E"   # primary
+    - "#F28A2E"   # secondary
+    - "#19727A"   # tertiary
+
+  # Sequential — for ordered / quantitative values.
+  # Use a named colormap or interpolate a hex list.
+  sequential: "viridis"
+
+  # Diverging — for values with a meaningful midpoint (zero, chance, baseline).
+  diverging:
+    - "#296073"   # negative endpoint
+    - "#FFFFFF"   # midpoint
+    - "#7B3000"   # positive endpoint
+
+  # Optional CB-safe categorical fallback the skill can suggest if your
+  # primary palette flags as borderline (e.g. green+orange pairings).
+  categorical_cb_safe:
+    - "#0072B2"   # blue
+    - "#D55E00"   # vermillion
+    - "#009E73"   # bluish green
+    - "#CC79A7"   # reddish purple
+
+reference_lines:
+  color: "#BFBBB8"
+  linetype: "dashed"
+  alpha: 0.4
+  linewidth: 0.4
+
+uncertainty:
+  ribbon_alpha: 0.2
+  errorbar_capsize: 3
+  errorbar_linewidth: 1.0
+  point_size: 4
+
+save:
+  formats: ["png", "pdf"]   # add "svg" if you hand-edit in Inkscape/Illustrator
+  dpi: 400
+  pdf_device: "cairo_pdf"   # R only; ignored by Python
+  background: "white"       # never transparent
+
+dimensions:
+  single_column: [3.5, 2.5]
+  one_half_column: [5.0, 3.5]
+  double_column: [7.0, 4.0]
+  slide_16_9: [13.3, 7.5]
+  poster_panel: [10.0, 6.0]
+
+# If true, the skill will flag palettes that fail CB-safety simulation
+# and suggest a swap. Turn off if you've made a deliberate choice.
+cb_safety_check: true
+
+# Free-text notes about palette / style decisions. Useful for reviewer
+# questions later ("why these colors?") and for keeping the rationale
+# alongside the values.
+notes: |
+  Palette derived from the project's visual identity.
+  Update this section when palette decisions change.

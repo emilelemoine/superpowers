@@ -48,7 +48,7 @@ Each project also has a shell alias in `~/.bashrc` (e.g. `dee`, `ler`) that cd's
 - Login shell is `/bin/bash`.
 - User-level modifications (aliases, env vars, PATH) go in `~/.bashrc`.
 - `~/.bash_profile` must source `~/.bashrc` for login shells (SSH sessions) to pick them up.
-- Shared Slurm aliases (`qq`, `ql`, `qe`, `qr`) live in `~/.bashrc` and use `$CLUSTER_LOG_DIR` (set by each project's `env-setup.sh`).
+- Shared Slurm aliases live in `~/.bashrc` and use `$CLUSTER_LOG_DIR` (set by each project's `env-setup.sh`). Canonical snippet: `slurm-aliases.bash` (sibling file in this skill folder) — paste/append into `~/.bashrc` on the cluster. Run `qh` in-shell for the live reference.
 - **Bash only** — no zsh-isms like `${$(cmd)##pattern}`. Split into a temp variable.
 
 ## Job Submission
@@ -117,10 +117,9 @@ For header-based, `--partition cpu` implies `--gpus 0` when `--gpus` is not spec
 
 ### Shared Aliases (from ~/.bashrc)
 
-- `qq` — compact `squeue` for your jobs
-- `ql [pattern]` — tail stdout of most recent job log
-- `qe [pattern]` — same as `ql` (stderr merged into `.out`)
-- `qr` — 10 most recent jobs with STATE and DURATION columns
+Canonical source: `slurm-aliases.bash` in this skill folder — copy into `~/.bashrc` on BigPurple. To update: edit that file, then `pbcopy < .../slurm-aliases.bash` and replace the block in `~/.bashrc`. The cluster shell's `qh` prints the live reference.
+
+Families: queue views (`qq`, `qom`, `qop`, `qo`, `qow`), log viewers operating on `$CLUSTER_LOG_DIR` (`ql`, `qe`, `qc`, `qr`), diagnosis (`qwhy`, `qh`). Log viewers take an optional job-ID/substring arg and default to the most recent `.out`. `qr` shows real sacct state (COMPLETED / FAILED / CANCELLED / TIMEOUT / OUT_OF_MEMORY / NODE_FAIL / …) with color.
 
 ## Broken Nodes and GPU Diagnostics
 

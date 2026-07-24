@@ -74,45 +74,43 @@ If that also fails, report the error.
 
 **First, check CLAUDE.md** (or AGENTS.md) in the worktree for project-specific setup instructions. If found, follow those exactly and skip auto-detection.
 
-**Otherwise, auto-detect from the worktree root:**
+**Otherwise, auto-detect from the worktree root.** Never `cd` into the worktree — a chained `cd "$abs_path" && ...` triggers bare-repository-attack permission prompts inside a worktree. Use each tool's directory flag instead, checking for marker files by absolute path:
 
 ```bash
-cd "$abs_path"
-
 # Node.js
-if [ -f package.json ]; then npm install; fi
+if [ -f "$abs_path/package.json" ]; then npm --prefix "$abs_path" install; fi
 
 # Rust
-if [ -f Cargo.toml ]; then cargo build; fi
+if [ -f "$abs_path/Cargo.toml" ]; then cargo build --manifest-path "$abs_path/Cargo.toml"; fi
 
-# Python (check uv first)
-if [ -f uv.lock ]; then uv sync --all-extras
-elif [ -f requirements.txt ]; then uv pip install -r requirements.txt
-elif [ -f pyproject.toml ]; then uv sync --all-extras
+# Python (check uv first) — uv's global --directory changes cwd without a shell cd
+if [ -f "$abs_path/uv.lock" ]; then uv sync --directory "$abs_path" --all-extras
+elif [ -f "$abs_path/requirements.txt" ]; then uv pip install --directory "$abs_path" -r requirements.txt
+elif [ -f "$abs_path/pyproject.toml" ]; then uv sync --directory "$abs_path" --all-extras
 fi
 
 # Go
-if [ -f go.mod ]; then go mod download; fi
+if [ -f "$abs_path/go.mod" ]; then go -C "$abs_path" mod download; fi
 ```
 
 Record any installation failures or warnings.
 
 ### Step 6: Run Test Baseline
 
-Run the project's test command. Auto-detect:
+Run the project's test command. Auto-detect (same rule — use directory flags, never `cd`):
 
 ```bash
 # Node.js
-if [ -f package.json ]; then npm test; fi
+if [ -f "$abs_path/package.json" ]; then npm --prefix "$abs_path" test; fi
 
 # Rust
-if [ -f Cargo.toml ]; then cargo test; fi
+if [ -f "$abs_path/Cargo.toml" ]; then cargo test --manifest-path "$abs_path/Cargo.toml"; fi
 
 # Python
-if [ -f uv.lock ] || [ -f pyproject.toml ]; then uv run pytest; fi
+if [ -f "$abs_path/uv.lock" ] || [ -f "$abs_path/pyproject.toml" ]; then uv run --directory "$abs_path" pytest; fi
 
 # Go
-if [ -f go.mod ]; then go test ./...; fi
+if [ -f "$abs_path/go.mod" ]; then go -C "$abs_path" test ./...; fi
 ```
 
 Record pass/fail counts and any failures.
@@ -138,6 +136,7 @@ Return a structured report in exactly this format:
 ## Important
 
 - **Always use absolute paths** for all git and file operations
+- **Never `cd` into the worktree.** Chained `cd "$abs_path" && ...` commands trigger bare-repository-attack permission prompts inside worktrees and subagents. Use directory flags (`--prefix`, `--manifest-path`, `--directory`, `go -C`, `git -C`) instead.
 - **Never skip the gitignore check** for project-local directories
 - **Never skip the test baseline** unless there's no test runner detected
 - **Report everything** — the main agent needs to know about any issues to decide how to proceed

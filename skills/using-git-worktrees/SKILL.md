@@ -15,11 +15,11 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 ## Setup: Dispatch the Worktree-Setup Agent
 
-Spawn a `worktree-setup` agent to handle all mechanical setup work:
+Spawn a `superpowers:worktree-setup` agent to handle all mechanical setup work:
 
 ```
 Agent:
-  subagent_type: worktree-setup
+  subagent_type: superpowers:worktree-setup
   description: "Set up worktree for <branch>"
   prompt: "Set up a worktree for branch <BRANCH_NAME> in repo <REPO_ROOT>"
 ```

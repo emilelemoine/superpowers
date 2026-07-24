@@ -21,11 +21,7 @@ Use this for **ad-hoc work** — tasks done outside a structured plan. For plan-
 
 ## How to Request
 
-**1. Determine the base:**
-
-```bash
-BASE_SHA=$(git merge-base HEAD main)
-```
+**1. Determine the base branch** (e.g. `main` or `master`) — just the name, no need to capture a SHA. Avoid `BASE_SHA=$(git merge-base ...)`: command substitution and shell variables can't be matched against the permission allowlist, so they prompt for approval. The three-dot range below computes the merge-base internally.
 
 **2. Dispatch branch-reviewer subagent:**
 
@@ -37,12 +33,13 @@ Agent:
     Review this feature branch for merge readiness.
 
     Branch: <branch-name>
-    Base: <base-branch> (SHA: <BASE_SHA>)
+    Base: <base-branch>
     Commits: <N> commits
 
-    Run these commands to get the changes:
-      git diff --stat <BASE_SHA>..HEAD
-      git diff <BASE_SHA>..HEAD
+    Run these commands to get the changes (literal three-dot range,
+    never a captured SHA):
+      git diff --stat <base-branch>...HEAD
+      git diff <base-branch>...HEAD
 
     Review for bugs, design issues, refactoring opportunities, efficiency
     improvements, and code quality. Read surrounding code (callers,
@@ -63,14 +60,12 @@ Agent:
 
 You: Let me request code review before merging.
 
-BASE_SHA=$(git merge-base HEAD main)
-
 [Dispatch superpowers:branch-reviewer subagent]
   Branch: fix/verify-index
-  Base: main (SHA: a7981ec)
+  Base: main
   Prompt: Review this feature branch...
-    git diff --stat a7981ec..HEAD
-    git diff a7981ec..HEAD
+    git diff --stat main...HEAD
+    git diff main...HEAD
 
 [Subagent returns]:
   Summary: Adds verifyIndex() and repairIndex() with 4 issue types.

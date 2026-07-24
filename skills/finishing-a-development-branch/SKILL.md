@@ -42,46 +42,50 @@ Stop. Don't proceed to Step 2.
 ### Step 2: Determine Base Branch
 
 ```bash
-# Try common base branches
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+# List which common base branches exist locally
+git branch --list main master
 ```
 
-Or ask: "This branch split from main - is that correct?"
+Use whichever exists as `<base-branch>` below. If both or neither, ask: "This branch split from main — is that correct?"
 
 ### Step 3: Collect Branch Diff
 
-```bash
-BASE_SHA=$(git merge-base HEAD <base-branch>)
+**Avoid command substitution and shell variables here.** A `BASE_SHA=$(git merge-base ...)` capture plus `$BASE_SHA..HEAD` cannot be matched against the permission allowlist — the `$(...)` and `$VAR` are opaque to it, so every such command prompts for approval. Git's three-dot range computes the merge-base internally, so plain literal commands do the same job and stay auto-approvable.
 
-# What changed (summary)
-git diff --stat $BASE_SHA..HEAD
+Run each as a **separate** command — no `&&` chaining:
+
+```bash
+# What changed (summary) — three-dot = changes since the merge-base with base
+git diff --stat <base-branch>...HEAD
 
 # Full diff
-git diff $BASE_SHA..HEAD
+git diff <base-branch>...HEAD
 
-# Commit history on this branch
-git log --oneline $BASE_SHA..HEAD
+# Commits added on this branch — two-dot = commits on HEAD but not base
+git log --oneline <base-branch>..HEAD
 ```
 
 ### Step 4: Dispatch Branch Reviewer
 
-Spawn a `branch-reviewer` subagent. It gets the diff and reviews with fresh context — no anchoring to the implementation decisions made during development.
+Spawn a `superpowers:branch-reviewer` subagent. It gets the diff and reviews with fresh context — no anchoring to the implementation decisions made during development.
 
 ```
 Agent:
-  subagent_type: branch-reviewer
+  subagent_type: superpowers:branch-reviewer
   prompt: |
     Review this feature branch for merge readiness.
 
     Branch: <branch-name>
-    Base: <base-branch> (SHA: <BASE_SHA>)
+    Base: <base-branch>
     Commits: <N> commits
 
     Worktree path: <worktree-path>
 
-    Run these commands to get the changes (always use git -C, never cd):
-      git -C <worktree-path> diff --stat <BASE_SHA>..HEAD
-      git -C <worktree-path> diff <BASE_SHA>..HEAD
+    Run these commands to get the changes. Use git -C (never cd), and use
+    the literal three-dot range (never capture a SHA into a variable —
+    command substitution triggers approval prompts):
+      git -C <worktree-path> diff --stat <base-branch>...HEAD
+      git -C <worktree-path> diff <base-branch>...HEAD
 
     Review for bugs, design issues, refactoring opportunities, efficiency
     improvements, and code quality. Read surrounding code (callers,

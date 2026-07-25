@@ -2,7 +2,19 @@
 # cluster. All log-viewing aliases require $CLUSTER_LOG_DIR, which each
 # project's cluster/env-setup.sh exports. Run `qh` for the in-shell reference.
 
-alias qq='squeue -u "$USER" -o "%.10i %.20j %.10P %.2t %.10M %.4D %.6b %.20R"'
+# qq [pat] — your queue, compact. With no arg: the classic compact view.
+# With a substring arg: filter to jobs whose squeue line contains <pat> (a
+# run-id tag, model name, node, partition, reason, ...) and widen the name
+# column (%.40j) + show the full reason (%R) so a ".<run-id>" name suffix
+# survives to be matched. Header row is always kept.
+qq() {
+  if [ -n "${1:-}" ]; then
+    squeue -u "$USER" -o "%.10i %.40j %.10P %.2t %.10M %.4D %.6b %R" \
+      | awk -v p="$1" 'NR==1 || index($0, p)'
+  else
+    squeue -u "$USER" -o "%.10i %.20j %.10P %.2t %.10M %.4D %.6b %.20R"
+  fi
+}
 
 _slurm_pick_log() {
   # Usage: _slurm_pick_log <ext> [pattern]
@@ -101,7 +113,8 @@ qh() {
 Slurm helpers (q*):
 
   Queue views
-    qq             your queue, compact (running + pending)
+    qq [pat]       your queue, compact (running + pending); optional substring
+                   filter (run-id tag, model, node, reason, ...)
     qom            your jobs, any partition (full columns)
     qop            your pending jobs with reason + est. start
     qo             oermannlab queue, all users

@@ -2,6 +2,12 @@
 # cluster. All log-viewing aliases require $CLUSTER_LOG_DIR, which each
 # project's cluster/env-setup.sh exports. Run `qh` for the in-shell reference.
 
+# BigPurple's system /etc/bashrc defines a `qq` alias. An alias with the same
+# name as a function is expanded during parsing, turning `qq() {` into a
+# `syntax error near unexpected token '('`. Drop any inherited aliases before
+# defining our functions so the definitions parse cleanly.
+unalias qq ql qe qc qr qwhy qh 2>/dev/null
+
 # qq [pat] — your queue, compact. With no arg: the classic compact view.
 # With a substring arg: filter to jobs whose squeue line contains <pat> (a
 # run-id tag, model name, node, partition, reason, ...) and widen the name

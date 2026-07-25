@@ -164,8 +164,10 @@ Agent:
   subagent_type: superpowers:code-planner
   prompt: |
     Write an implementation plan from the design doc at <design-doc-path>.
-    Worktree: <worktree-path-if-applicable>
+    Worktree: <existing-worktree-path, or omit this line entirely>
 ```
+
+Only include the `Worktree:` line if an isolated worktree **already exists** for this work. Do not create one here — the worktree is set up at execution time by `superpowers:executing-plans` (its Step 0). Planning does not need a worktree, so omitting the line is the normal case.
 
 The agent will read the design doc (its only input), explore the codebase independently, write the plan, split into sub-step files if needed, and present execution options to the user.
 

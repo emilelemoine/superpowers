@@ -109,7 +109,7 @@ After completing each chunk of the plan, dispatch a plan-document-reviewer subag
 
 After writing the plan, tell the user the plan is ready and point them at the roadmap file (or single plan file):
 
-> **Plan complete.** Saved to `docs/plans/<filename>.md`. Execute with `superpowers:executing-plans` (which starts with worktree setup).
+> **Plan complete.** Saved to `docs/plans/<filename>.md`. Execute with `superpowers:executing-plans`, which sets up an isolated git worktree (Step 0) before running any tasks.
 
 ## Behavioral Guidelines
 

@@ -15,9 +15,12 @@ Load plan, review critically, execute all tasks using a TDD loop, commit after e
 
 ### Step 0: Set Up Worktree
 
-1. Check if already in a worktree: `git rev-parse --show-toplevel` — if the path contains `.worktrees/`, you're already in one; proceed to Step 1
-2. If not in a worktree and not on main/master, you're on a feature branch in the main repo — proceed to Step 1 without worktree setup
-3. If on main/master, use `superpowers:using-git-worktrees` to create an isolated workspace before proceeding
+Plan execution ALWAYS runs in an isolated worktree — that is the default, not a special case. The only question is whether one already exists.
+
+1. Check if already in a worktree: compare `git rev-parse --git-dir` with `git rev-parse --git-common-dir`. If they **differ**, this checkout is a linked worktree (works for any worktree directory name — `.worktrees/`, `worktrees/`, or a custom path), so you're already isolated; proceed to Step 1.
+2. Otherwise you are in the main checkout — **regardless of which branch is checked out** (main, master, or an existing feature branch). Being on a feature branch in the main checkout is NOT isolation; it's exactly the state that needs a worktree. Use `superpowers:using-git-worktrees` to create an isolated workspace before proceeding.
+
+**Do not skip worktree setup just because you're already off `main`.** A leftover feature branch in the main checkout is the most common way the pipeline silently stops isolating work — treat it like any other un-isolated state.
 
 ### Step 1: Load and Review Plan
 
@@ -123,5 +126,6 @@ When executing a DAG roadmap with parallel steps:
 ## Integration
 
 **Required workflow skills:**
+- **superpowers:using-git-worktrees** — REQUIRED (Step 0): isolate work in a worktree unless already inside one
 - **superpowers:writing-plans** — Format reference for implementation plans
 - **superpowers:finishing-a-development-branch** — Complete development after all tasks

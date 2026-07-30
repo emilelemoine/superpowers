@@ -21,13 +21,32 @@ You'll receive a git diff and the list of changed files. Review them for:
 
 5. **Code quality** — Inconsistent patterns within the changeset, missing or misleading error messages, brittle assumptions, magic numbers, poor variable naming.
 
-6. **Test strength** — Whether the branch's tests would actually notice if the code broke. See the mutation check below. This is the one place worth spending real effort: a passing suite that can't detect a deleted function is worse than no suite, because it manufactures confidence.
+6. **Test strength** — For branches touching code that can be wrong *silently*, whether the tests would actually notice if it broke. See the mutation check below for whether this branch qualifies. Where it applies, a passing suite that can't detect a deleted function is worse than no suite, because it manufactures confidence.
 
 ## Mutation Check
 
 A green suite proves the tests ran, not that they test anything. Break the code on purpose and confirm the tests notice.
 
-**Skip entirely if** the branch adds no tests, changes no production logic, or is docs/config only. Say you skipped it and why.
+**This check is targeted, not routine. Most branches should skip it.**
+
+### Does this branch need it?
+
+Run the check only on code that can be **wrong without being loud** — where a bad value produces a plausible-looking result instead of a failure.
+
+**Run it when the branch touches:**
+- Computations whose output you can't eyeball — statistics, aggregations, scores, transforms, unit conversions
+- Code that writes data consumed downstream — CSVs, tables, exports, database records, artifacts that feed a figure or a report
+- Thresholds, classifications, filters, and eligibility rules — anything deciding what's included or excluded
+- Anything whose wrong answer would be believed rather than noticed
+
+**Skip it when the branch is:**
+- UI, CLI wiring, glue, plumbing, config, docs, or refactors with no behavior change
+- Code whose failure mode is a crash, an error, or something visibly broken on first use
+- Adding no tests, or changing no production logic
+
+The distinction is *silence*, not importance. Code that explodes when wrong is already well served by the ordinary suite and by running it — a bug there surfaces at deployment and is cheap to fix. Mutation testing exists for the bug that never surfaces: the CSV that gets written with a wrong constant, the figure that gets made, the number that ends up in a paper.
+
+**Say which way you decided and why, in one line, either way.** If you skip, that is a complete and correct outcome — do not run mutations to look thorough.
 
 ### Precondition — do this first, no exceptions
 
@@ -125,7 +144,7 @@ Severity guide:
 ### Verdict
 `GOOD TO GO` / `FIX BEFORE MERGE` / `NEEDS REWORK`
 
-With a one-line justification. State how many mutations you ran and how many survived — or that you skipped the check, and why. A branch with a surviving mutation on load-bearing code is `FIX BEFORE MERGE` even if you found nothing else.
+With a one-line justification. State either how many mutations you ran and how many survived, or that the branch didn't qualify for the check and why — one line, not a section. A surviving mutation on load-bearing code is `FIX BEFORE MERGE` even if you found nothing else.
 
 ## Principles
 
@@ -134,5 +153,5 @@ With a one-line justification. State how many mutations you ran and how many sur
 - **Respect the codebase's style.** Don't suggest rewriting working code to match your preferred patterns. Flag actual issues, not taste differences.
 - **Fewer, better findings.** Five real issues beat twenty nitpicks. If you only find minor things, say so and keep it short.
 - **Read surrounding code.** A function that looks odd in isolation might make perfect sense in context. Check before flagging.
-- **Spend your effort on the mutation check, not on reading harder.** Breaking the code and watching the tests stay green is evidence. Re-reading a diff hoping to spot something is not. When you're deciding where to put another ten minutes, put it into one more mutation.
+- **When the mutation check applies, spend your effort there rather than reading harder.** Breaking the code and watching the tests stay green is evidence; re-reading a diff hoping to spot something is not. But this applies only to branches that qualify — running mutations on plumbing is wasted effort, not diligence.
 - **Leave the tree exactly as you found it.** Every mutation gets reverted immediately. Verify clean before you start and after you finish.

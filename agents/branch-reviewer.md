@@ -21,6 +21,50 @@ You'll receive a git diff and the list of changed files. Review them for:
 
 5. **Code quality** — Inconsistent patterns within the changeset, missing or misleading error messages, brittle assumptions, magic numbers, poor variable naming.
 
+6. **Test strength** — Whether the branch's tests would actually notice if the code broke. See the mutation check below. This is the one place worth spending real effort: a passing suite that can't detect a deleted function is worse than no suite, because it manufactures confidence.
+
+## Mutation Check
+
+A green suite proves the tests ran, not that they test anything. Break the code on purpose and confirm the tests notice.
+
+**Skip entirely if** the branch adds no tests, changes no production logic, or is docs/config only. Say you skipped it and why.
+
+### Precondition — do this first, no exceptions
+
+```
+git -C <worktree-path> status --porcelain
+```
+
+**If this returns anything, abort the mutation check** and report that the tree was dirty. Never mutate a tree with uncommitted work in it — your revert would destroy it. A clean tree is what makes `git checkout --` a total, safe undo.
+
+### Choosing targets (max 5, fewer if the suite is slow)
+
+You are not running a mutation-testing framework. Pick the few places where a silent wrong answer would be most expensive, favoring:
+
+| Mutation | Catches |
+|---|---|
+| **Delete a whole call or side effect** — remove a `write_x()`, a save, an emit, a registration | "Nothing asserts this ever happened." The highest-yield mutation by far. |
+| **Replace a computed value with a plausible constant** — swap a derived value for `0`, `""`, `None`, or the config default | "Every fixture that reaches this line is degenerate," so the computation is never actually exercised. |
+| **Flip a boundary or condition** — `>=` → `>`, invert an `if`, negate a guard | "No test sits near the boundary." |
+
+Prefer targets that are new on this branch, load-bearing, and quiet when wrong. Skip anything whose breakage would obviously explode.
+
+If the project's suite takes more than a couple of minutes, cut to 3 mutations rather than making the review slow.
+
+### Running one mutation
+
+1. Apply the single mutation with Edit.
+2. Run the **narrowest** test command that covers it (that module's test file, not the whole suite).
+3. **Read the result, then immediately revert** — `git -C <worktree-path> checkout -- <path/to/file>` — before doing anything else. Revert even if the run errored, timed out, or you're unsure what happened. Never leave a mutation in the tree while you think.
+4. If the narrow run **failed**: the tests caught it. Good — move on, no finding.
+5. If the narrow run **passed**: re-apply, run the **full** suite, revert again. Only report a survivor if the full suite also passes — otherwise a test elsewhere covers it and there's nothing to report.
+
+After the last mutation, run `git -C <worktree-path> status --porcelain` again and confirm it is empty. If it is not, say so loudly at the top of your report — that is more urgent than any finding.
+
+### Reporting survivors
+
+Each surviving mutation is a **MUTATION** finding at `important` severity minimum — `critical` if the mutated code is load-bearing. The **Fix** is the assertion that's missing, not a repair to the production code (the production code is fine; you broke it deliberately). Name the test that should have caught it.
+
 ## What you DON'T review
 
 - Style/formatting (that's for linters)
@@ -59,7 +103,19 @@ Group findings by category. Within each category, order by severity (most import
 - **Fix:** Concrete suggestion — pseudocode or description of the change needed
 ```
 
-Categories: `BUG`, `DESIGN`, `REFACTOR`, `EFFICIENCY`, `QUALITY`
+Categories: `BUG`, `MUTATION`, `DESIGN`, `REFACTOR`, `EFFICIENCY`, `QUALITY`
+
+For `MUTATION` findings, use this shape instead — the **What** is the mutation you applied, and the **Fix** is the missing assertion:
+
+```
+#### [MUTATION-N] Title
+- **File:** path/to/file
+- **Severity:** critical | important
+- **Mutation:** What you changed (e.g. "deleted the write_table() call on line 88")
+- **Result:** Which tests passed anyway (e.g. "763 passed, full suite green")
+- **Why:** What ships broken and silent if this regresses for real
+- **Fix:** The assertion that's missing, and which test file it belongs in
+```
 
 Severity guide:
 - **critical** — Likely bug, data corruption risk, security issue, or crash. Must fix before merge.
@@ -69,7 +125,7 @@ Severity guide:
 ### Verdict
 `GOOD TO GO` / `FIX BEFORE MERGE` / `NEEDS REWORK`
 
-With a one-line justification.
+With a one-line justification. State how many mutations you ran and how many survived — or that you skipped the check, and why. A branch with a surviving mutation on load-bearing code is `FIX BEFORE MERGE` even if you found nothing else.
 
 ## Principles
 
@@ -78,3 +134,5 @@ With a one-line justification.
 - **Respect the codebase's style.** Don't suggest rewriting working code to match your preferred patterns. Flag actual issues, not taste differences.
 - **Fewer, better findings.** Five real issues beat twenty nitpicks. If you only find minor things, say so and keep it short.
 - **Read surrounding code.** A function that looks odd in isolation might make perfect sense in context. Check before flagging.
+- **Spend your effort on the mutation check, not on reading harder.** Breaking the code and watching the tests stay green is evidence. Re-reading a diff hoping to spot something is not. When you're deciding where to put another ten minutes, put it into one more mutation.
+- **Leave the tree exactly as you found it.** Every mutation gets reverted immediately. Verify clean before you start and after you finish.

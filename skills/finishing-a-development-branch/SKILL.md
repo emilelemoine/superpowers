@@ -37,7 +37,13 @@ Cannot proceed with merge/PR until tests pass.
 
 Stop. Don't proceed to Step 2.
 
-**If tests pass:** Continue to Step 2.
+**If tests pass:** check the tree is clean before continuing:
+
+```bash
+git status --porcelain
+```
+
+Uncommitted work here means the reviewer will skip its mutation check — it refuses to mutate a tree it can't safely revert. Commit or stash first, then continue to Step 2.
 
 ### Step 2: Determine Base Branch
 
@@ -91,7 +97,16 @@ Agent:
     improvements, and code quality. Read surrounding code (callers,
     interfaces, related modules) whenever the diff alone isn't enough
     context to judge.
+
+    Then run the mutation check described in your instructions. The tree is
+    clean and the full suite passes as of right now — verify that with
+    `git -C <worktree-path> status --porcelain` before mutating anything,
+    and abort the check if it returns any output. Revert every mutation
+    immediately after reading its result, and confirm the tree is clean
+    again before you report.
 ```
+
+The mutation check is where this review earns its cost. A suite that passes with a whole function deleted is the failure mode that survives every amount of reading.
 
 ### Step 5: Present Findings Interactively
 

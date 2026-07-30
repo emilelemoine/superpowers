@@ -7,21 +7,31 @@ description: Use when writing or reviewing implementation plans — format refer
 
 ## Overview
 
-Implementation plans document everything an engineer needs to execute a feature: which files to touch, complete code for each task, exact test commands, and bite-sized steps. DRY. YAGNI. TDD. Frequent commits.
+Implementation plans tell an engineer which files to touch, what each task must achieve, and what the tests must assert. DRY. YAGNI. TDD. Frequent commits.
 
 Assume the implementer is a skilled developer who knows almost nothing about the codebase or problem domain, and who doesn't know good test design very well.
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
 
-## Bite-Sized Task Granularity
+## The Plan Does Not Restate The TDD Loop
 
-**Each step is one action (2-5 minutes):**
-- "Write the failing test" - step
-- "Run it to make sure it fails" - step
-- "Implement the minimal code to make the test pass" - step
-- "Run the tests and make sure they pass" - step
-- "Commit" - step
+`superpowers:executing-plans` already runs Red → Green → Commit for **every** task, unconditionally. It writes the failing test, runs it, verifies the failure, implements, re-runs, and commits, without being told to.
+
+So the plan must NOT spell out "write the failing test / run it / implement / run it / commit" per task. That is five checkboxes and ~40 lines restating a loop the executor supplies for free — and then the plan reviewer reviews the restatement. It is the single largest source of plan bloat.
+
+**One block per task.** State what the task achieves, which files it touches, and what the test must assert. Let the executor run the ritual.
+
+## What Code To Include
+
+Include code only where a competent implementer could get it *wrong* from a one-line description:
+
+- **Include:** exact signatures and contracts, non-obvious algorithms, specific constants or formulas, anything with a subtle correctness condition, anything where the wrong-but-plausible version would pass a naive test.
+- **Omit:** boilerplate, obvious CRUD, imports, standard error handling, test scaffolding, anything the description already determines.
+
+"Add a `--verbose` flag that prints each file as it's processed" needs no code block. "The ceiling must come from the measured value, not the config value" does — that's exactly where a plausible wrong implementation hides.
+
+A plan that contains the whole implementation is not a plan; it is the implementation, written twice, in a file where nothing type-checks it.
 
 ## Plan Structure: DAG Roadmap + Self-Contained Step Files
 
@@ -75,12 +85,12 @@ Do NOT also create the combined single file — the roadmap + step files are the
 Each step file is a fully self-contained mini-plan. A fresh Claude session can execute it without any other context. Each includes:
 
 - **Header:** Goal, context (how this fits the overall feature), branch name, execution instruction (`superpowers:executing-plans`), merge instruction (`superpowers:finishing-a-development-branch`)
-- **Task list:** Exact file paths, complete code to write, exact commands to run with expected output. Same bite-sized granularity as above.
+- **Task list:** One block per task — exact file paths, what the test must assert, and code only where it's non-obvious
 - **Format/lint command:** The project-specific formatter to run after each edit (e.g., `ruff format <file> && ruff check --fix <file>`)
 
 ### Single-file plan format
 
-For plans with 4 or fewer commits, use a single file with this header:
+The default for nearly all work. With one block per task, a single file comfortably holds 8-10 commits — split only when the sequencing constraints in "When to split" actually apply.
 
 ```markdown
 # [Feature Name] Implementation Plan
@@ -100,49 +110,38 @@ For plans with 4 or fewer commits, use a single file with this header:
 
 ## Task Structure
 
+One checkbox per task. `executing-plans` handles red/green/commit inside it.
+
 ````markdown
-### Task N: [Component Name]
+- [ ] **Task N: [what this task achieves]**
 
-**Files:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py:123-145`
-- Test: `tests/exact/path/to/test.py`
+  **Files:** create `exact/path/to/file.py`, modify `exact/path/to/existing.py`, test `tests/path/test_file.py`
 
-- [ ] **Step 1: Write the failing test**
+  **Test asserts:** `parse_config()` raises `ConfigError` on a missing `arm` key,
+  and returns the measured ceiling — not the configured one — when both are present.
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
-```
+  **Non-obvious:** the ceiling comes from `run.measured_phi`; using `config.phi`
+  here passes a naive test and is wrong.
 
-- [ ] **Step 2: Run test to verify it fails**
+  **Commit:** `feat: parse arm config from measured run`
+````
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+Reach for a code block only when the **Non-obvious** line can't carry it — a
+signature that must match exactly, a formula, a specific constant.
 
-- [ ] **Step 3: Write minimal implementation**
+For a task with genuinely nothing subtle in it, three lines is a complete task:
 
-```python
-def function(input):
-    return expected
-```
+````markdown
+- [ ] **Task 4: add `--verbose` flag printing each file as it's processed**
 
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
-```
+  **Files:** modify `src/cli.py`, test `tests/test_cli.py`
+  **Test asserts:** with `--verbose`, each input path appears in stdout; without it, none do.
+  **Commit:** `feat: add --verbose flag`
 ````
 
 ## Remember
-- Exact file paths always
-- Complete code in plan (not "add validation")
-- Exact commands with expected output
+- Exact file paths — but **paths only, never line numbers.** `src/cli.py`, not `src/cli.py:123-145`. Line numbers go stale before the plan is executed and cost review rounds to maintain.
+- Code only where it's non-obvious. The plan is not a second copy of the implementation.
+- Don't restate the TDD loop — `executing-plans` runs it for every task.
+- **The plan should be shorter than the diff it produces.** If it isn't, cut.
 - DRY, YAGNI, TDD, frequent commits

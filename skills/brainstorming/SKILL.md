@@ -9,48 +9,71 @@ Help turn ideas into fully formed designs and specs through natural collaborativ
 
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
 
+## First: Is This A Build Request?
+
+Before anything else, decide which of these you were asked:
+
+- **A question about what already exists** — "do confounds exist?", "which of these is slower?", "what does the data look like?", "is X currently handled?" → **Answer it.** Run the command, read the output, show the numbers. Then ask whether anything needs building. Terminating here with an answer and no spec is a **correct and complete** outcome for this skill.
+- **A request to build, change, or add something** → continue with the design process below.
+
+When it's ambiguous, get the answer first. An answer costs one command; a spec for a question you haven't answered costs a session. You cannot design well for output you have not seen.
+
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+Once you are doing creative work — building, changing, or adding behavior — do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies regardless of perceived simplicity.
 </HARD-GATE>
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+Every *build* goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+
+## Anti-Pattern: Designing Around Numbers You Haven't Seen
+
+If the system can already produce the data, output, or behavior under discussion, **run it and look at the actual result before designing anything around it.** Never design a schema, persistence layer, threshold, classifier, or report for values you have not seen.
+
+The tell: a design that has to say "we can't predict what these will be" or "the exact values will determine X." That sentence means you are working in the wrong order. Stop and go get them.
 
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order:
+This checklist applies once you've determined it's a build request. You MUST create a task for each item and complete them in order:
 
-1. **Explore project context** — check files, docs, recent commits
+1. **Explore project context** — check files, docs, recent commits. **If the system can already produce the data or behavior in question, run it and show the real output.**
 2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Identify parallelization** — what can be built independently? Add a "## Parallelization" section to the design
-7. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
-8. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
-9. **User reviews written spec** — ask user to review the spec file before proceeding
-10. **Transition to implementation** — spawn a fresh-context `superpowers:code-planner` agent with only the design doc path
+6. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit. Add a "## Parallelization" section **only if** there are genuinely independent work streams (see below).
+7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix blocking issues and re-dispatch once to verify (max 2 rounds, then surface to human)
+8. **User reviews written spec** — ask user to review the spec file before proceeding
+9. **Transition to implementation** — spawn a fresh-context `superpowers:code-planner` agent with only the design doc path
 
 ## Process Flow
 
 ```dot
 digraph brainstorming {
-    "Explore project context" [shape=box];
+    "Build request?" [shape=diamond];
+    "Run it, show the real output,\nanswer the question" [shape=box];
+    "Does the answer imply building something?" [shape=diamond];
+    "Done — answer delivered, no spec" [shape=doublecircle];
+    "Explore project context\n(run it if it's runnable)" [shape=box];
     "Visual questions ahead?" [shape=diamond];
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
-    "Identify parallelization" [shape=box];
     "Write design doc" [shape=box];
-    "Spec review loop" [shape=box];
+    "Spec review loop (max 2 rounds)" [shape=box];
     "Spec review passed?" [shape=diamond];
     "User reviews spec?" [shape=diamond];
     "Spawn superpowers:code-planner agent\n(fresh context)" [shape=doublecircle];
 
-    "Explore project context" -> "Visual questions ahead?";
+    "Build request?" -> "Run it, show the real output,\nanswer the question" [label="no, it's a question\nabout what exists"];
+    "Run it, show the real output,\nanswer the question" -> "Does the answer imply building something?";
+    "Does the answer imply building something?" -> "Done — answer delivered, no spec" [label="no"];
+    "Does the answer imply building something?" -> "Explore project context\n(run it if it's runnable)" [label="yes"];
+    "Build request?" -> "Explore project context\n(run it if it's runnable)" [label="yes"];
+
+    "Explore project context\n(run it if it's runnable)" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
     "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
     "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
@@ -58,18 +81,17 @@ digraph brainstorming {
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Identify parallelization" [label="yes"];
-    "Identify parallelization" -> "Write design doc";
-    "Write design doc" -> "Spec review loop";
-    "Spec review loop" -> "Spec review passed?";
-    "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Spec review loop (max 2 rounds)";
+    "Spec review loop (max 2 rounds)" -> "Spec review passed?";
+    "Spec review passed?" -> "Spec review loop (max 2 rounds)" [label="blocking issues,\nfix and verify once"];
     "Spec review passed?" -> "User reviews spec?" [label="approved"];
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Spawn superpowers:code-planner agent\n(fresh context)" [label="approved"];
 }
 ```
 
-**The terminal state is spawning a `superpowers:code-planner` agent.** Do NOT invoke writing-plans in the current session, frontend-design, mcp-builder, or any other implementation skill. The brainstorming session's context is polluted with exploration and Q&A — the plan writer needs fresh context with only the design doc.
+**For a build request, the terminal state is spawning a `superpowers:code-planner` agent.** For a question about what already exists, the terminal state is the answer. Do NOT invoke writing-plans in the current session, frontend-design, mcp-builder, or any other implementation skill. The brainstorming session's context is polluted with exploration and Q&A — the plan writer needs fresh context with only the design doc.
 
 ## The Process
 
@@ -112,16 +134,19 @@ digraph brainstorming {
 
 ## After the Design
 
-**Parallelization:**
+**Parallelization (usually one line):**
 
-Before writing the spec, identify which parts of the system can be built independently:
+Most work is sequential. The default is a single line in the design doc:
 
-- What shared foundations must exist before anything else? (data models, types, interfaces)
-- Which work streams are independent once the foundation exists?
-- What are the contracts/interfaces between streams?
-- What must wait until all streams are complete? (integration tests, final assembly)
+```markdown
+## Parallelization
 
-Add a "## Parallelization" section to the design doc with these findings. Example:
+All work is sequential — no parallelization opportunities.
+```
+
+Only write more than that when the design genuinely contains **separate subsystems that different people could build at the same time without talking to each other.** That is a high bar: separate branches, separate worktrees, separate sessions. "These two functions don't depend on each other" is not parallelism — it's just two commits.
+
+When the bar is genuinely met, say what the shared foundation is, which streams are independent once it exists, and what has to wait for all of them:
 
 ```markdown
 ## Parallelization
@@ -132,7 +157,7 @@ They communicate through the data models only, no direct coupling.
 Integration tests should run after all three are merged.
 ```
 
-If the project is small enough that everything is sequential, state that explicitly: "All work is sequential — no parallelization opportunities." The code-planner reads this section and translates it into the DAG roadmap.
+The code-planner reads this section and translates it into the DAG roadmap. Inventing parallelism here forces a multi-step DAG downstream that costs more to coordinate than the work saves.
 
 **Documentation:**
 
@@ -141,12 +166,14 @@ If the project is small enough that everything is sequential, state that explici
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
-**Spec Review Loop:**
+**Spec Review Loop (max 2 rounds):**
 After writing the spec document:
 
-1. Dispatch spec-document-reviewer subagent (see spec-document-reviewer-prompt.md)
-2. If Issues Found: fix, re-dispatch, repeat until Approved
-3. If loop exceeds 5 iterations, surface to human for guidance
+1. **Round 1** — dispatch spec-document-reviewer subagent (see spec-document-reviewer-prompt.md). Fix the blocking issues only.
+2. **Round 2** — re-dispatch to verify *those specific fixes landed*. Tell the reviewer this is a verification pass: it must not open new categories of issue.
+3. If round 2 still returns blocking issues, **stop and surface to the user.** Do not run a round 3.
+
+Two rounds is the cap, not a target — one clean round is the normal outcome. Rounds 3+ overwhelmingly fix problems introduced by rounds 1–2, not problems in the design. A spec is not code; residual imperfection in it is cheaper to fix during implementation than to iterate out beforehand.
 
 **User Review Gate:**
 After the spec review loop passes, ask the user to review the written spec before proceeding:
@@ -176,9 +203,13 @@ The agent will read the design doc (its only input), explore the codebase indepe
 
 ## Key Principles
 
+- **Answer questions, don't spec them** - If the ask is about what already exists, the deliverable is the answer
+- **Look before you design** - Run the thing, see the real output, then design around it
 - **One question at a time** - Don't overwhelm with multiple questions
 - **Multiple choice preferred** - Easier to answer than open-ended when possible
 - **YAGNI ruthlessly** - Remove unnecessary features from all designs
+- **Proportionality** - The spec should be shorter than the change it describes. A 600-line spec for a 200-line diff is a defect, not thoroughness
+- **Cite paths, never line numbers** - `src/audit.py` is stable; `src/audit.py:412` goes stale within a single task and then costs review rounds to maintain. Citation density is not rigor
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design, get approval before moving on
 - **Be flexible** - Go back and clarify when something doesn't make sense

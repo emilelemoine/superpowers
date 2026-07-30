@@ -40,13 +40,15 @@ Read the design doc thoroughly. Extract:
 
 ### Phase 2 — Explore the Codebase
 
-Launch parallel subagents to explore relevant parts of the codebase:
+Explore only what the design doc references:
 - Locate relevant modules, files, and entry points
 - Understand existing patterns, conventions, and abstractions
 - Identify dependencies, interfaces, and potential impact zones
 - Discover tests, configuration, and infrastructure concerns
 
-Do NOT explore the entire codebase — focus on what the design doc references.
+**Scale exploration to the work.** For a small, well-scoped change, read the handful of files the spec names — directly, yourself. Launch parallel subagents only when the change genuinely spans several unfamiliar subsystems. A fan-out of explorers for a three-file change costs more than reading the three files.
+
+Do NOT explore the entire codebase. You are looking for what would make the plan *wrong*, not building a complete mental model.
 
 ### Phase 3 — File Structure
 
@@ -87,23 +89,26 @@ Use the `superpowers:writing-plans` skill format. All plans use `superpowers:exe
 - **Default to a single plan file.** Most features fit in one step — use it unless there's a real reason not to.
 - **Only split into DAG roadmap + step files** when there are genuinely independent work streams that benefit from parallel execution in separate worktrees, OR when the plan is large enough (many commits across distinct subsystems) that a single file would be unwieldy.
 
-**Each step file is self-contained:** A fresh Claude session can execute it without any other context. Include goal, context, branch name, task list with complete code, format/lint command, execution instruction (`superpowers:executing-plans`), and merge instruction (`superpowers:finishing-a-development-branch`).
+**Each step file is self-contained:** A fresh Claude session can execute it without any other context. Include goal, context, branch name, task list, format/lint command, execution instruction (`superpowers:executing-plans`), and merge instruction (`superpowers:finishing-a-development-branch`).
 
-**Each step should be one action (2-5 minutes).** Steps use checkbox (`- [ ]`) syntax for tracking.
+**One checkbox per task, not per action.** `superpowers:executing-plans` already runs Red → Green → Commit for every task unconditionally. Do NOT write out "write the failing test / run it / implement / run it / commit" — that restates a loop the executor supplies for free and is the largest source of plan bloat. Each task states what it achieves, which files it touches, and what the test must assert.
 
 **Remember:**
-- Exact file paths always
-- Complete code in plan (not "add validation" — show the actual code)
-- Exact commands with expected output
+- Exact file paths — paths only, **never line numbers.** They go stale before the plan is executed and cost review rounds to maintain.
+- Code only where a plausible wrong implementation would pass a naive test — exact signatures, formulas, subtle correctness conditions. Omit boilerplate and anything the one-line description already determines. The plan is not a second copy of the implementation.
+- **The plan should be shorter than the diff it produces.** If it isn't, cut.
 - DRY, YAGNI, TDD, frequent commits
 
-### Phase 6 — Plan Review Loop
+### Phase 6 — Plan Review Loop (max 2 rounds)
 
-After completing each chunk of the plan, dispatch a plan-document-reviewer subagent using the prompt template at `skills/writing-plans/plan-document-reviewer-prompt.md`.
+Dispatch a plan-document-reviewer subagent using the prompt template at `skills/writing-plans/plan-document-reviewer-prompt.md` — once for a single-file plan, once per step file for a DAG.
 
-- Provide: the plan chunk file path and the spec file path
-- If Issues Found: fix, re-dispatch, repeat until Approved
-- If loop exceeds 5 iterations, surface to human for guidance
+- Provide: the plan file path and the spec file path
+- **Round 1** — fix the blocking issues only. Apply the proposed cuts unless you can say concretely what they'd break.
+- **Round 2** — re-dispatch to verify those fixes landed. Tell the reviewer this is a verification pass: it must not open new categories of issue.
+- If round 2 still returns blocking issues, **stop and surface to the user.** Do not run a round 3.
+
+Two rounds is the cap, not a target — one clean round is the normal outcome. Rounds 3+ overwhelmingly fix problems introduced by rounds 1-2. A plan is not code; residual imperfection is cheaper to fix during execution than to iterate out beforehand.
 
 ### Phase 7 — Execution Handoff
 
@@ -113,11 +118,11 @@ After writing the plan, tell the user the plan is ready and point them at the ro
 
 ## Behavioral Guidelines
 
-- **Challenge the plan**: If a better alternative exists, say so with reasoning
+- **Challenge the plan**: If a better alternative exists, say so with reasoning. This includes challenging the spec's *size* — if the spec designs machinery whose output is predictable and trivial, say so before planning it.
 - **Keep commits atomic**: Each commit does one thing, leaves codebase working
 - **Respect project conventions**: `main` + short-lived feature branches, conventional commit prefixes (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`)
 - **Be specific**: Name actual files, functions, components — not vague summaries
-- **Include complete code**: Plan steps must contain the actual code to write, not descriptions of code
+- **Right-size the detail**: Include code where a plausible wrong implementation would slip through; describe in one line where it wouldn't. Precision about *what* is required; transcribing the implementation is not.
 
 ## Subagent Delegation Guidelines
 

@@ -51,7 +51,7 @@ Dispatch a refactor reviewer when:
 - The implementation deviated significantly from the plan
 - The task was complex enough to warrant a second look
 
-The branch-reviewer at merge time catches the same issues with better whole-branch context. For plan-driven tasks with complete code, per-task review rarely adds value.
+The branch-reviewer at merge time catches the same issues with better whole-branch context, at a fraction of the cost. Per-task review rarely adds value — default to skipping it.
 
 **When dispatching:**
 1. Get the diff for this task: `git diff HEAD`

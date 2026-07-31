@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs, or when about to break working code on purpose to check whether the tests catch it - requires running verification commands and confirming output before making any success claims; evidence before assertions always
 ---
 
 # Verification Before Completion
@@ -55,6 +55,7 @@ Skip any step = lying, not verifying
 - Expressing satisfaction before verification ("Great!", "Perfect!", "Done!", etc.)
 - About to commit/push/PR without verification
 - Trusting agent success reports
+- About to `git checkout --` or `git restore` a file that still has unstaged work in it
 - Relying on partial verification
 - Thinking "just this once"
 - Tired and wanting work over
@@ -71,6 +72,8 @@ Skip any step = lying, not verifying
 | "Agent said success" | Verify independently |
 | "I'm tired" | Exhaustion ≠ excuse |
 | "Partial check is enough" | Partial proves nothing |
+| "I'll put it back right after" | Revert discards to HEAD. Uncommitted means there is no "back" |
+| "The mutation survived, the tests are weak" | Only if the mutation ran. A stale cache invents survivors |
 | "Different words so rule doesn't apply" | Spirit over letter |
 
 ## Key Patterns
@@ -83,8 +86,9 @@ Skip any step = lying, not verifying
 
 **Regression tests (TDD Red-Green):**
 ```
-✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
+✅ Commit → Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
 ❌ "I've written a regression test" (without red-green verification)
+❌ Reverting anything while the fix is still uncommitted (see below)
 ```
 
 **Build:**
@@ -104,6 +108,22 @@ Skip any step = lying, not verifying
 ✅ Agent reports success → Check VCS diff → Verify changes → Report actual state
 ❌ Trust agent report
 ```
+
+## Breaking Code On Purpose
+
+Reverting a fix to watch a regression test fail, deleting a call to see whether any test notices, flipping a boundary to probe the suite — these all end in "put it back," and that step is where the evidence gets destroyed instead of collected.
+
+**`git checkout -- <file>` is not an undo.** It restores the file from the index — HEAD's content whenever nothing is staged — discarding every unstaged change in it, including the work you are verifying, along with the mutation. Silently. Every run after that tests code nobody wrote, and the numbers still look plausible.
+
+```
+COMMIT BEFORE YOU BREAK ANYTHING
+```
+
+- **Clean tree first.** `git status --porcelain` must be empty before the first break and after the last. Not empty? Commit. A WIP commit on a feature branch costs nothing and can be amended or squashed later.
+- **Backing the file up instead is not a substitute.** It leaves the only copy of your work outside version control, one bad path away from gone. Commit, then break.
+- **Don't edit anything else mid-loop.** An edit to the file under mutation dies at the next restore; an edit anywhere else silently changes what the remaining runs measure. Note it, finish the loop, then fix.
+- **Clear build and bytecode caches before every run.** A mutation that never ran looks exactly like a mutation your tests failed to catch, so a stale cache invents coverage gaps that aren't there. (Python: a same-size edit in the same timestamp-second reuses `__pycache__`; `-B` doesn't help — it stops the cache being written, not read.)
+- **Control run after every restore.** Re-run un-mutated, against the baseline for that same command, and confirm it returns before you trust the next result.
 
 ## Why This Matters
 

@@ -54,7 +54,7 @@ The distinction is *silence*, not importance. Code that explodes when wrong is a
 git -C <worktree-path> status --porcelain
 ```
 
-**If this returns anything, abort the mutation check** and report that the tree was dirty. `git checkout --` is not an undo — it makes the file match HEAD, so it discards every uncommitted change in that file along with your mutation. Silently. Every run after that tests code nobody wrote.
+**If this returns anything, abort the mutation check** and report that the tree was dirty. `git checkout --` is not an undo — it restores the file from the index (HEAD's content when nothing is staged), discarding every unstaged change in it along with your mutation. Silently. Every run after that tests code nobody wrote.
 
 A committed baseline is the only thing that makes the revert safe, and it has to hold for the **whole loop**, not just the first mutation.
 
@@ -74,21 +74,18 @@ If the project's suite takes more than a couple of minutes, cut to 3 mutations r
 
 ### Running one mutation
 
-**First, record the baseline.** Run the suite once, un-mutated, and write down the pass/fail counts. Every later run should differ from that baseline only in ways the current mutation explains.
+**First, record a baseline for each command you will use.** Run the narrow command un-mutated and write down its pass/fail counts; do the same for the full suite if you reach one. Every later run is compared against the baseline for *that same command* — a full-suite count and a narrow count are not comparable.
+
+**Clear stale bytecode before every run**, mutated and un-mutated alike — for Python, `find <worktree-path> -name __pycache__ -type d -exec rm -rf {} +`. A same-size edit landing in the same timestamp-second as the already-cached version leaves the old bytecode in play, so the run executes the *previous* code. Your mutation never ran, the tests pass, and it looks exactly like a mutation the tests failed to catch — a false survivor you would then report as a finding. `python3 -B` does not fix this; it stops the cache being written, not read.
 
 1. Apply the single mutation with Edit.
 2. Run the **narrowest** test command that covers it (that module's test file, not the whole suite).
 3. **Read the result, then immediately revert** — `git -C <worktree-path> checkout -- <path/to/file>` — before doing anything else. Revert even if the run errored, timed out, or you're unsure what happened. Never leave a mutation in the tree while you think.
-4. **Control run.** Re-run that same narrow command with nothing mutated. It must come back to the baseline counts. If it doesn't, stop the whole check — see below.
+4. `git -C <worktree-path> status --porcelain` — must be empty. Anything there means something of yours is still in the tree; stop and say so.
 5. If the mutated run **failed**: the tests caught it. Good — move on, no finding.
-6. If the mutated run **passed**: re-apply, run the **full** suite, revert, control-run again. Only report a survivor if the full suite also passes — otherwise a test elsewhere covers it and there's nothing to report.
+6. If the mutated run **passed**: re-apply, run the **full** suite, revert. Before reporting a survivor, re-run the full suite un-mutated and confirm it returns to its baseline — that is what separates a real survivor from a run that never executed your mutation.
 
-**Never edit anything but the mutation while the loop is running** — no fixes, no notes, no assertions you wish existed. The next revert discards them. Everything you find goes in the report, not in the tree.
-
-**A control run that doesn't return to baseline means stop.** Two different failures produce it, and both make every result so far worthless:
-
-- *The revert took something with it.* Extra failures that persist from one mutation onward — the tree is no longer what you think it is. Report that at the top instead of the findings.
-- *The mutation never ran.* A "caught" verdict is evidence only if the mutated code actually executed. In Python, a same-size edit landing in the same timestamp-second as the already-cached version leaves a stale `__pycache__` in play, so the run silently executes the *previous* code and the mutation looks killed. `python3 -B` does not fix this — it stops the cache being written, not read. Delete the cache directory between runs.
+**Never edit anything but the mutation while the loop is running** — no fixes, no notes, no assertions you wish existed. An edit to the file under mutation is discarded by the next revert; an edit anywhere else silently changes what the remaining runs measure and pollutes the final clean check. Everything you find goes in the report, not in the tree.
 
 After the last mutation, run `git -C <worktree-path> status --porcelain` again and confirm it is empty. If it is not, say so loudly at the top of your report — that is more urgent than any finding.
 

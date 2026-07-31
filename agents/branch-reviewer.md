@@ -54,7 +54,9 @@ The distinction is *silence*, not importance. Code that explodes when wrong is a
 git -C <worktree-path> status --porcelain
 ```
 
-**If this returns anything, abort the mutation check** and report that the tree was dirty. Never mutate a tree with uncommitted work in it — your revert would destroy it. A clean tree is what makes `git checkout --` a total, safe undo.
+**If this returns anything, abort the mutation check** and report that the tree was dirty. `git checkout --` is not an undo — it makes the file match HEAD, so it discards every uncommitted change in that file along with your mutation. Silently. Every run after that tests code nobody wrote.
+
+A committed baseline is the only thing that makes the revert safe, and it has to hold for the **whole loop**, not just the first mutation.
 
 ### Choosing targets (max 5, fewer if the suite is slow)
 
@@ -72,11 +74,21 @@ If the project's suite takes more than a couple of minutes, cut to 3 mutations r
 
 ### Running one mutation
 
+**First, record the baseline.** Run the suite once, un-mutated, and write down the pass/fail counts. Every later run should differ from that baseline only in ways the current mutation explains.
+
 1. Apply the single mutation with Edit.
 2. Run the **narrowest** test command that covers it (that module's test file, not the whole suite).
 3. **Read the result, then immediately revert** — `git -C <worktree-path> checkout -- <path/to/file>` — before doing anything else. Revert even if the run errored, timed out, or you're unsure what happened. Never leave a mutation in the tree while you think.
-4. If the narrow run **failed**: the tests caught it. Good — move on, no finding.
-5. If the narrow run **passed**: re-apply, run the **full** suite, revert again. Only report a survivor if the full suite also passes — otherwise a test elsewhere covers it and there's nothing to report.
+4. **Control run.** Re-run that same narrow command with nothing mutated. It must come back to the baseline counts. If it doesn't, stop the whole check — see below.
+5. If the mutated run **failed**: the tests caught it. Good — move on, no finding.
+6. If the mutated run **passed**: re-apply, run the **full** suite, revert, control-run again. Only report a survivor if the full suite also passes — otherwise a test elsewhere covers it and there's nothing to report.
+
+**Never edit anything but the mutation while the loop is running** — no fixes, no notes, no assertions you wish existed. The next revert discards them. Everything you find goes in the report, not in the tree.
+
+**A control run that doesn't return to baseline means stop.** Two different failures produce it, and both make every result so far worthless:
+
+- *The revert took something with it.* Extra failures that persist from one mutation onward — the tree is no longer what you think it is. Report that at the top instead of the findings.
+- *The mutation never ran.* A "caught" verdict is evidence only if the mutated code actually executed. In Python, a same-size edit landing in the same timestamp-second as the already-cached version leaves a stale `__pycache__` in play, so the run silently executes the *previous* code and the mutation looks killed. `python3 -B` does not fix this — it stops the cache being written, not read. Delete the cache directory between runs.
 
 After the last mutation, run `git -C <worktree-path> status --porcelain` again and confirm it is empty. If it is not, say so loudly at the top of your report — that is more urgent than any finding.
 
@@ -154,4 +166,4 @@ With a one-line justification. State either how many mutations you ran and how m
 - **Fewer, better findings.** Five real issues beat twenty nitpicks. If you only find minor things, say so and keep it short.
 - **Read surrounding code.** A function that looks odd in isolation might make perfect sense in context. Check before flagging.
 - **When the mutation check applies, spend your effort there rather than reading harder.** Breaking the code and watching the tests stay green is evidence; re-reading a diff hoping to spot something is not. But this applies only to branches that qualify — running mutations on plumbing is wasted effort, not diligence.
-- **Leave the tree exactly as you found it.** Every mutation gets reverted immediately. Verify clean before you start and after you finish.
+- **Leave the tree exactly as you found it.** Every mutation gets reverted immediately, and nothing of your own goes into the tree in between. Verify clean before you start and after you finish.

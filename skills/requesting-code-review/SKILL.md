@@ -7,7 +7,7 @@ description: Use when completing ad-hoc work outside a structured plan, or when 
 
 Dispatch a superpowers:branch-reviewer subagent to catch issues before they cascade. The reviewer gets the branch diff for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
-**Core principle:** Review early, review often.
+**Core principle:** One review per branch, at the point where fresh eyes are worth the most.
 
 ## When to Use
 
@@ -18,6 +18,8 @@ Use this for **ad-hoc work** — tasks done outside a structured plan. For plan-
 - When stuck (fresh perspective helps)
 - Before refactoring (baseline check)
 - After fixing a complex bug
+
+**Dispatch the reviewer once per branch.** Don't re-dispatch after acting on the feedback — the reviewer will find new things to say about code it has already passed, and those later rounds cost more than they catch. Re-running the tests is how you verify the fixes.
 
 ## How to Request
 
@@ -41,17 +43,14 @@ Agent:
       git diff --stat <base-branch>...HEAD
       git diff <base-branch>...HEAD
 
-    Review for bugs, design issues, refactoring opportunities, efficiency
-    improvements, and code quality. Read surrounding code (callers,
-    interfaces, related modules) whenever the diff alone isn't enough
-    context to judge.
+    Apply your budget: every real bug, plus at most 3 non-critical
+    findings. Returning none is a normal and successful outcome.
 ```
 
 **3. Act on feedback:**
-- Fix Critical issues immediately
-- Fix Important issues before proceeding
-- Note Minor issues for later
-- Push back if reviewer is wrong (with reasoning)
+- Fix Critical issues before merging — those are the ones that block
+- Decide case by case on Important issues. They're worth your attention, not your obedience; skipping one is a legitimate call
+- Push back if the reviewer is wrong (with reasoning)
 
 ## Example
 
@@ -70,21 +69,23 @@ You: Let me request code review before merging.
 [Subagent returns]:
   Summary: Adds verifyIndex() and repairIndex() with 4 issue types.
   Findings:
-    [QUALITY-1] Missing progress indicators (important)
-    [QUALITY-2] Magic number for reporting interval (minor)
+    [BUG-1] repairIndex() writes the new index before fsyncing the
+            journal, so a crash mid-repair leaves an index that points
+            at entries the journal never recorded (critical)
   Verdict: FIX BEFORE MERGE
 
-You: [Fix progress indicators, commit]
-[Proceed to merge via finishing-a-development-branch]
+You: [Reorder the fsync, commit, re-run tests]
+[Proceed to merge via finishing-a-development-branch — no second review]
 ```
+
+Note what isn't in that report: no naming nits, no magic numbers, no "consider adding progress indicators." One real bug and nothing else is a good review, not a thin one.
 
 ## Red Flags
 
 **Never:**
-- Skip review because "it's simple"
 - Ignore Critical issues
-- Proceed with unfixed Important issues
 - Argue with valid technical feedback
+- Re-dispatch the reviewer on a branch it has already reviewed
 
 **If reviewer is wrong:**
 - Push back with technical reasoning

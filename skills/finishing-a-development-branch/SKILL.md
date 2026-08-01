@@ -75,6 +75,8 @@ git log --oneline <base-branch>..HEAD
 
 Spawn a `superpowers:branch-reviewer` subagent. It gets the diff and reviews with fresh context — no anchoring to the implementation decisions made during development.
 
+**Dispatch the reviewer exactly once per branch.** Do not re-dispatch it after applying fixes. Re-running the test suite (Step 6) is the verification, and a second reviewer pass on a branch it has already seen reliably invents new categories of finding rather than confirming the old ones. Concerns that come up after the fixes are ordinary work — handle them or don't, but they are not another review round.
+
 ```
 Agent:
   subagent_type: superpowers:branch-reviewer
@@ -93,21 +95,12 @@ Agent:
       git -C <worktree-path> diff --stat <base-branch>...HEAD
       git -C <worktree-path> diff <base-branch>...HEAD
 
-    Review for bugs, design issues, refactoring opportunities, efficiency
-    improvements, and code quality. Read surrounding code (callers,
-    interfaces, related modules) whenever the diff alone isn't enough
-    context to judge.
+    Apply your budget: every real bug, plus at most 3 non-critical
+    findings. Returning none is a normal and successful outcome.
 
-    Then decide whether this branch qualifies for the mutation check per
-    your instructions — it is for code that can be wrong silently, and
-    most branches do not qualify. Skipping is a normal outcome; say which
-    way you decided in one line.
-
-    If it does qualify: the tree is clean and the full suite passes as of
-    right now. Verify that with `git -C <worktree-path> status --porcelain`
-    before mutating anything, and abort the check if it returns any output.
-    Revert every mutation immediately after reading its result, and confirm
-    the tree is clean again before you report.
+    The tree is clean and the full suite passes as of right now, so the
+    mutation check is safe to run if this branch qualifies for it. Most
+    branches don't; say which way you decided in one line either way.
 ```
 
 **When it applies, the mutation check is where this review earns its cost.** A suite that passes with a whole function deleted is the failure mode that survives any amount of reading. But it applies to a minority of branches — code whose wrong answer gets *believed* rather than noticed. Code that crashes when it's wrong is already served by running the tests.
@@ -123,7 +116,7 @@ Verdict: <GOOD TO GO / FIX BEFORE MERGE / NEEDS REWORK>
 
 <Summary paragraph>
 
-<N> findings: <X> critical, <Y> important, <Z> minor
+<N> findings: <X> critical, <Y> important
 
 ---
 
@@ -139,19 +132,15 @@ Fix: ...
 ...
 ```
 
-If the verdict is **GOOD TO GO** with no critical/important findings, keep it brief:
+If the verdict is **GOOD TO GO** with no findings, keep it to two lines:
 
 ```
 ## Code Review — <branch-name>
 
-Verdict: GOOD TO GO
-
-<Summary>. No critical or important issues found.
-
-<list any minor findings briefly>
-
-Ready to proceed to merge options.
+Verdict: GOOD TO GO — <one-line summary>. Nothing worth fixing before merge.
 ```
+
+A review that finds nothing is the expected outcome for carefully written work, not a signal that something was missed. Don't pad it out.
 
 Never auto-apply fixes — the user drives all decisions.
 
@@ -317,6 +306,10 @@ git branch -D <feature-branch>
 - **Problem:** Merge without a fresh set of eyes on the diff
 - **Fix:** Always dispatch branch-reviewer before presenting options
 
+**Reviewing until it runs dry**
+- **Problem:** Re-dispatching the reviewer after each round of fixes. Later rounds mostly surface problems the earlier rounds introduced, and each one adds tests and churn out of proportion to what it catches
+- **Fix:** One dispatch per branch. The test suite verifies the fixes
+
 **Removing worktree while CWD is inside it**
 - **Problem:** `git worktree remove` deletes the directory; if the shell's CWD is inside it, the session crashes
 - **Fix:** Use a separate Bash call to `cd <main-repo>` before the remove call — never chain `cd && git` (triggers permission prompts)
@@ -334,6 +327,7 @@ git branch -D <feature-branch>
 **Never:**
 - Proceed with failing tests
 - Skip the code review step
+- Re-dispatch the branch-reviewer on a branch it has already reviewed
 - Auto-apply review fixes without user approval
 - Merge without verifying tests on result
 - Delete work without confirmation

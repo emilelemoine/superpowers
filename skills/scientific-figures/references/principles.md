@@ -126,9 +126,11 @@ Sources are listed at the end. Where authorities disagree, the disagreement is s
 
 **Statement.** The caption must (a) state what the figure shows, (b) define every symbol/color/error-bar convention used, and (c) state the message or finding.
 
+**Where it lives.** Beside the image, never rasterized onto it — the journal's caption slot, or a markdown sidecar in the same directory (SKILL.md §6). Baking it into the canvas is not a stricter reading of this principle; it produces text that cannot be edited, searched, translated, diffed, or read aloud, and that is sized for exactly one output width. A project may drop (c) and keep the sidecar purely descriptive when the claim belongs to the manuscript alone.
+
 **Evidence.** Rougier et al. (2014), Rule 4. Nature Methods, Cell, and most major journals require n, error-bar type, statistical test, and significance levels in the caption. Cairo (*The Truthful Art*, 2016) frames captions as the antidote to "the picture lies because the words are missing."
 
-**Common violation.** "Figure 3: Results." — no n, no error bar definition, no scale convention.
+**Common violation.** "Figure 3: Results." — no n, no error bar definition, no scale convention. The opposite failure is as common: the whole caption drawn into the figure, often smuggled through an axis-label slot.
 
 ---
 

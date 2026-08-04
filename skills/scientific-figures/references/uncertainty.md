@@ -62,6 +62,8 @@ Cumming (2014, *Psychological Science*, "The New Statistics"): annotating figure
 
 ## How to caption uncertainty
 
+This goes in the caption sidecar, not on the canvas (SKILL.md §6). Only the parts that *name a mark* — a `chance` reference line, a per-panel `n` — are drawn.
+
 A minimum-acceptable uncertainty caption includes:
 
 - **What** is shown (mean, median, individual outcomes)

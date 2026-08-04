@@ -32,6 +32,17 @@ font:
   size_title: 11                    # plot/subtitle (defaults to base * 1.2)
   size_strip: 10                    # facet strip text
 
+sidecar:
+  # Where the title/caption/methods prose goes, since it is never drawn on
+  # the canvas (SKILL.md §6).
+  #   "beside"  — <figure>.md next to the image (default)
+  #   "shared"  — one markdown file per figure directory, section per figure
+  #   "none"    — the project routes prose elsewhere (a report, a manuscript);
+  #               the skill then asks where rather than assuming a file
+  location: "beside"
+  path: null            # for "shared": the file, relative to the figure dir
+  state_finding: true   # false = descriptive only; the claim lives in the paper
+
 palette:
   # Qualitative / categorical — for unordered groups
   categorical:

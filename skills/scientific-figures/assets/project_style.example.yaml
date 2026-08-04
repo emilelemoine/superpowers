@@ -11,6 +11,12 @@ font:
   size_title: 11
   size_strip: 10
 
+# Figures carry labels only; the title/caption/methods prose lives here.
+sidecar:
+  location: "beside"      # "beside" | "shared" | "none"
+  path: null              # for "shared", e.g. "FIGURES.md"
+  state_finding: true     # false = descriptive only, claim stays in the paper
+
 palette:
   # Qualitative / categorical — for unordered groups.
   # Keep to <= 8 colors. Verify CB-safety with colorspace::deutan() (R)

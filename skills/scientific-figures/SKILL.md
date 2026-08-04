@@ -1,6 +1,6 @@
 ---
 name: scientific-figures
-description: Use when designing, drafting, reviewing, or critiquing any scientific or technical figure — matplotlib, seaborn, ggplot2, or any other tool. Covers chart-type selection by message, color (categorical / sequential / diverging + colorblind-safety), uncertainty representation, faceting, direct annotation, and per-project style conventions. Use proactively when the user asks to make, fix, polish, or evaluate any plot or figure for a paper, poster, slide deck, or analysis — even quick exploratory plots. Also use when the user pastes or links a figure and asks for feedback. Teaches judgment with cited evidence (Cleveland & McGill, Wong, Wilke, Correll & Gleicher, Tufte) and named exemplars (Tabula Muris UMAP pattern, AlphaFold PAE, Manhattan plot, slopegraph, climate stripes, Anscombe's quartet). Does NOT prescribe a fixed template — every project has its own palette and the skill defers to per-project style when declared.
+description: Use when designing, drafting, reviewing, or critiquing any scientific or technical figure — matplotlib, seaborn, ggplot2, or any other tool. Covers chart-type selection by message, color (categorical / sequential / diverging + colorblind-safety), uncertainty representation, faceting, direct annotation, caption placement, and per-project style. Use proactively when the user asks to make, fix, polish, or evaluate any plot or figure for a paper, poster, slide deck, or analysis — even quick exploratory plots. Also use when the user pastes or links a figure and asks for feedback. Teaches judgment with cited evidence (Cleveland & McGill, Wong, Wilke, Correll & Gleicher, Tufte) and named exemplars (Tabula Muris UMAP pattern, AlphaFold PAE, Manhattan plot, slopegraph, climate stripes, Anscombe's quartet). Does NOT prescribe a fixed template — every project has its own palette and the skill defers to per-project style when declared.
 ---
 
 # Scientific Figures
@@ -9,9 +9,9 @@ This skill teaches judgment for designing figures that argue clearly. It is **no
 
 The skill operates in one of three modes:
 
-1. **Making a new figure** — start with §1 (Identify the message), then §2 (Pick the chart), then §3 (Color & uncertainty), then §6 (Per-project style).
-2. **Critiquing an existing figure** — jump to §5 (Critique mode).
-3. **Polishing a draft** — work through §4 (Common mistakes) as a checklist.
+1. **Making a new figure** — start with §1 (Identify the message), then §2 (Encoding), §3 (Color), §4 (Uncertainty), §6 (Where the text goes), then §10 (Per-project style).
+2. **Critiquing an existing figure** — jump to §8 (Critique mode).
+3. **Polishing a draft** — work through §7 (Common mistakes) as a checklist.
 
 Every recommendation here is backed by perceptual research or by widely-praised exemplars. Where the literature disagrees, the disagreement is surfaced rather than papered over — see `references/principles.md` for citations.
 
@@ -68,7 +68,7 @@ Three flavors. Picking the wrong one invents structure that isn't in the data.
 
 **Colorblind safety.** Wong (2011) — ~8% of men of Northern European descent have some form of CVD. Specifically avoid: red/green, green/orange, green/brown, blue/purple at low saturation. Safer: blue/orange, teal/orange (used as a newsroom default), the Okabe-Ito 8.
 
-For palette decisions specifically, load `references/color.md`. For per-project palette declarations, see §6.
+For palette decisions specifically, load `references/color.md`. For per-project palette declarations, see §10.
 
 ## 4. Show uncertainty, and avoid bar + error-bar specifically
 
@@ -102,10 +102,76 @@ Deeper treatment in `references/uncertainty.md`.
 - The question is rank order at a fixed x-value
 - You want the reader to see a crossing point
 
-## 6. Common mistakes to scan for
+## 6. Never rasterize the caption — labels on the canvas, prose in a sidecar
+
+A figure carries text **only where the text names something drawn in it.** Everything else — title, subtitle, caption, methods paragraph — goes in a markdown sidecar beside the image file, never onto the canvas.
+
+| Stays on the canvas | Goes in the sidecar |
+|---|---|
+| axis labels, units, tick labels | figure title / `suptitle` |
+| panel and facet titles | subtitle |
+| per-panel `n` and pinned conditions | the caption / methods paragraph |
+| direct series labels (replacing a legend) | anything stating the finding |
+| reference-line labels (`chance`, `baseline`) | anything defining a term rather than naming a mark |
+| group / block labels on an axis | |
+| annotations pointing at a specific region of data | |
+
+**The mechanical test: does the string have a finite verb?**
+
+A label is a *noun phrase pinned to a location* — `chance`, `n = 60`, `labram`, `outpatient · trex · Kimmel`, `1 · lattice + noise floor`. It is meaningless detached from the thing it sits on.
+
+Prose has a verb and survives being moved anywhere on the canvas. *"Points are AUC with 95% bootstrap CIs; the dashed line is chance"* is a sentence. It goes in the sidecar — **even though it defines the error bars, and even though the error bars are on the canvas.**
+
+That last clause is the one people get wrong. The canvas keeps the *pointer*, never the *definition*:
+
+| On the canvas (pointer) | In the sidecar (definition) |
+|---|---|
+| the word `chance` beside the rule | "the dashed rule is chance at 0.5" |
+| `n = 60` inside the panel | "n is evaluation recordings after a patient-level split" |
+| the error bar, drawn | "bars are 95% patient-bootstrap CIs over 2000 resamples" |
+| `1 · lattice` against the block | what the lattice rung contains and why it is first |
+
+### This rule is not a matter of judgment
+
+Most of this skill teaches judgment you should exercise. This section does not. It is the one hard rule here, and **it has been tested: agents read this section, agree with it, and then draw the caption anyway.** If you find yourself constructing an argument for why your figure is the exception, you are in the failure mode, not outside it.
+
+**Red flags — you are rationalizing:**
+
+- "Just a small methods line at the bottom."
+- "A figure gets pasted into slides detached from its caption."
+- "The reader needs to know what the interval is."
+- "I kept it minimal on-canvas."
+- "It's not a title, it's a footnote / subtitle / note."
+- "The user only asked for a PNG."
+
+All of these mean: move the string to the sidecar and write the second file.
+
+| Rationalization | Reality |
+|---|---|
+| "It travels with the image; a caption doesn't." | The sidecar is the file *next to* the image. It travels better than a caption in a separate manuscript, and unlike rasterized text it can be corrected when the data changes. |
+| "A detached figure must stand alone." | It never did. Anyone who needs the interval defined also needs the cohort, the split, and the resample count. One line doesn't rescue it — it makes the figure *look* rescued, which is worse. |
+| "It's only one sentence." | Every rasterized caption was only one sentence once. The test is the verb, not the length. |
+| "I put it in `supxlabel` / a `fig.text` footnote, not a title." | Same string, one indirection. `supxlabel` is worse than a title — it also destroys a label slot. |
+| "The request said render a PNG, nothing about a sidecar." | A figure request is a request for a readable figure. The sidecar is part of the deliverable, the way tests are part of a feature. Write it without being asked. |
+| "Stating the headline number on the figure keeps it honest." | A finding drawn on the canvas is the thing this rule most exists to stop. It cannot be revised, retracted, or peer-reviewed independently of the image. |
+
+**Violating the letter of this rule is violating the spirit of it.** "No caption" means no caption, in any slot, at any font size, under any name.
+
+**You are not done until two files exist.** If your script wrote a `.png` and nothing else, the caption is either on the canvas or lost. Check before reporting the work complete.
+
+### Sidecar location and content
+
+**Default: `<figure>.md` beside the image** — `auc.png` → `auc.md`. Location is project-dependent; if a `figure_style.yaml` declares `sidecar:`, follow it (see §10). Some projects collect all of a stage's figures into one shared notes file instead.
+
+Content follows the caption requirements in `references/principles.md`: what the figure shows, every symbol / color / error-bar convention defined, `n`, and the finding. Projects that keep the claim in the manuscript alone may drop the finding and leave the sidecar purely descriptive — say so in `figure_style.yaml` rather than deciding per figure.
+
+**Generate the sidecar in the same script that saves the figure.** Captions contain numbers derived from the data (`n`, CI level, resample count, which variant was drawn). A hand-written sidecar goes stale the first time the data changes and nothing catches it. Write both files in one function, from the same dataframe.
+
+## 7. Common mistakes to scan for
 
 A scan-list, in rough order of frequency:
 
+- **Title, subtitle, or caption rasterized into the image** — belongs in a sidecar (§6). Includes the disguised form: a whole caption dumped into `fig.supxlabel`, an axis label, or a bottom-margin `fig.text`.
 - **Bar + error-bar** — the within-the-bar bias. Use points + CI instead.
 - **Default rainbow / jet** colormap on quantitative data.
 - **Default `tab10`** used as both categorical and ordered (e.g. for model sizes).
@@ -118,7 +184,7 @@ A scan-list, in rough order of frequency:
 - **Default font sizes** — matplotlib's `fontsize=10` is illegible once shrunk to journal column width.
 - **Color-coded without explanation** in the caption.
 
-## 7. Critique mode — reviewing a figure
+## 8. Critique mode — reviewing a figure
 
 When the user shows you a figure and asks "is this OK?", run these questions in order. Stop at the first failure.
 
@@ -128,12 +194,13 @@ When the user shows you a figure and asks "is this OK?", run these questions in 
 4. **Is color doing the right job?** Categorical for unordered, sequential for ordered, diverging only with a meaningful midpoint.
 5. **Is uncertainty shown?** If yes, is the encoding non-bar?
 6. **Are axes labeled with units?** Is n stated? Is the error bar type defined in the caption?
-7. **Could a colorblind reader distinguish the groups?** Run mentally or with a simulator.
-8. **Are legends necessary, or could direct labels replace them?**
-9. **If multi-panel, do panels share axes? Is panel order meaningful?**
-10. **Could you remove ink without losing information?** (Direction, not target — see *Anti-list* in `references/principles.md`.)
+7. **Does every string on the canvas name something drawn there?** A sentence — anywhere, including in a label slot — is a caption that belongs in the sidecar (§6). Does a sidecar exist at all?
+8. **Could a colorblind reader distinguish the groups?** Run mentally or with a simulator.
+9. **Are legends necessary, or could direct labels replace them?**
+10. **If multi-panel, do panels share axes? Is panel order meaningful?**
+11. **Could you remove ink without losing information?** (Direction, not target — see *Anti-list* in `references/principles.md`.)
 
-## 8. Eight named touchstones
+## 9. Eight named touchstones
 
 When you're not sure how to lay out a figure, ask: which exemplar matches my data shape?
 
@@ -148,7 +215,7 @@ When you're not sure how to lay out a figure, ask: which exemplar matches my dat
 
 Full catalogue with links in `references/praised-figures.md`. Treat these as references to *adapt*, not patterns to copy literally.
 
-## 9. Per-project style — projects own their palette
+## 10. Per-project style — projects own their palette
 
 Every project may declare a `figure_style.yaml` at its root. When present, **the per-project style is the source of truth** — the skill follows it, the defaults above are fallbacks only.
 
@@ -176,7 +243,7 @@ Full schema and how to load it in R / Python: `references/project-style.md`. Sta
 
 If no `figure_style.yaml` is present, **ask the user whether to create one** before adopting cross-project defaults silently. Each paper deserves its own visual identity.
 
-## 10. Implementation references
+## 11. Implementation references
 
 When you're actually writing code, load the appropriate reference:
 
@@ -185,7 +252,7 @@ When you're actually writing code, load the appropriate reference:
 
 No plotly reference is included — add one when there's a real use case.
 
-## 11. When NOT to use this skill
+## 12. When NOT to use this skill
 
 - Throwaway debugging plots you'll close in 30 seconds — defaults are fine.
 - Logging / monitoring output (wandb runs, tensorboard) — the dashboard handles it.

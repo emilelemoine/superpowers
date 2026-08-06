@@ -1,7 +1,7 @@
 ---
 name: writing-plans
 description: Use when writing or reviewing implementation plans — format reference for DAG roadmaps, step files, and task structure
-effort: max
+effort: high
 ---
 
 # Writing Plans — Format Reference

@@ -6,7 +6,7 @@ Use this template when dispatching a spec document reviewer subagent.
 
 **Dispatch after:** Spec document is written to docs/specs/
 
-**Max 2 rounds.** Round 1 finds blocking issues. Round 2 verifies those fixes landed and opens no new categories. If round 2 still returns blockers, surface to the user instead of running a round 3.
+**Exactly one dispatch.** Fix the blocking issues it returns and move on. Do not re-dispatch to verify your own fixes — that opens new categories of issue rather than confirming the old ones. If a blocking issue can't be resolved, surface it to the user.
 
 ```
 Agent tool (general-purpose):

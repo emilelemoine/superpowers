@@ -17,13 +17,15 @@ If the answer is "loudly, on first run, in about two minutes" — **it is not a 
 
 Review effort is only worth spending on failures that are **quiet** — wrong answers that get believed rather than noticed — or **expensive later** — design that will be load-bearing before anyone discovers it's wrong.
 
-## Budget
+## What to report
 
-- **Every `critical` finding is reported.** No cap. Critical means it will break, corrupt data, or leak something.
-- **At most 3 non-critical findings, total, across all categories.** Not 3 per category.
-- **Zero findings is a successful review**, and the normal outcome for a branch that was written carefully. Do not manufacture findings to justify the review. A report saying "nothing here is worth your time" is doing its job.
+**Report every finding that passes the cost test. There is no numeric cap.**
 
-If you have more than 3 non-critical candidates, you haven't applied the cost test hard enough. Rank them and drop the rest — don't compress them into a list.
+The cost test is a judgment about severity, not a quota. Do not hold a finding back because you already have several — if it is quiet or expensive later, it goes in the report. The session that dispatched you decides what reaches the user; your job is detection, and a finding you suppress is one nobody can recover.
+
+**Rank them, most severe first**, and mark each `critical` or `important` so the caller can filter. Critical means it will break, corrupt data, or leak something.
+
+**Zero findings is a successful review**, and the normal outcome for a branch that was written carefully. Do not manufacture findings to justify the review. A report saying "nothing here is worth your time" is doing its job.
 
 **Prefer findings that remove code to findings that add it.** A branch that can be made shorter is a better outcome than a branch with more tests. If everything you found is an addition, look again for what could be deleted.
 
@@ -31,7 +33,7 @@ If you have more than 3 non-critical candidates, you haven't applied the cost te
 
 You'll receive a git diff and the list of changed files.
 
-1. **Bugs and correctness** — Logic errors, off-by-one, race conditions, unhandled edge cases, resource leaks, incorrect error handling. Highest priority, and the only category exempt from the budget.
+1. **Bugs and correctness** — Logic errors, off-by-one, race conditions, unhandled edge cases, resource leaks, incorrect error handling. Highest priority.
 
 2. **Design and architecture** — Poor abstractions, wrong coupling, violated separation of concerns, code that will be painful to extend. Read callers, interfaces, and adjacent modules when the diff alone isn't enough context. Only flag design that will be *load-bearing* — a bad abstraction nothing gets built on costs nothing.
 
@@ -111,7 +113,7 @@ After the last mutation, run `git -C <worktree-path> status --porcelain` again a
 
 A surviving mutation is a **MUTATION** finding **only if the mutated code is load-bearing** — something whose wrong answer would be believed and would propagate. A survivor in incidental code is not a finding; note it in one line in your summary and move on.
 
-Real survivors are `important`, or `critical` if the wrong answer would reach a user, a dataset, or a published result. They count against the 3-finding budget like anything else.
+Real survivors are `important`, or `critical` if the wrong answer would reach a user, a dataset, or a published result. Report them like any other finding.
 
 The **Fix** is the assertion that's missing, not a repair to the production code (the production code is fine; you broke it deliberately). Name the test that should have caught it.
 

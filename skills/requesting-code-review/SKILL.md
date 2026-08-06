@@ -43,11 +43,16 @@ Agent:
       git diff --stat <base-branch>...HEAD
       git diff <base-branch>...HEAD
 
-    Apply your budget: every real bug, plus at most 3 non-critical
-    findings. Returning none is a normal and successful outcome.
+    Report everything that passes your cost test, ranked most severe
+    first, with no numeric cap — I do the filtering on this end.
+    Returning none is a normal and successful outcome.
 ```
 
-**3. Act on feedback:**
+**3. Filter before acting.** The reviewer no longer caps itself, so apply the cost test to what came back: for each non-critical finding, ask how it would surface if it shipped and what fixing it would cost then. Act on the critical ones and on at most **3** non-critical ones; drop the rest without mentioning them.
+
+Filtering here rather than in the reviewer means detection is uncapped while what you act on stays bounded. Be aware of the tradeoff: you wrote this code, so you are the anchored party — when a finding is borderline, that bias runs toward dismissing it.
+
+**4. Act on feedback:**
 - Fix Critical issues before merging — those are the ones that block
 - Decide case by case on Important issues. They're worth your attention, not your obedience; skipping one is a legitimate call
 - Push back if the reviewer is wrong (with reasoning)

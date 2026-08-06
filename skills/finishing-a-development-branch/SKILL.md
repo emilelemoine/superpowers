@@ -95,8 +95,9 @@ Agent:
       git -C <worktree-path> diff --stat <base-branch>...HEAD
       git -C <worktree-path> diff <base-branch>...HEAD
 
-    Apply your budget: every real bug, plus at most 3 non-critical
-    findings. Returning none is a normal and successful outcome.
+    Report everything that passes your cost test, ranked most severe
+    first, with no numeric cap — I do the filtering on this end.
+    Returning none is a normal and successful outcome.
 
     The tree is clean and the full suite passes as of right now, so the
     mutation check is safe to run if this branch qualifies for it. Most
@@ -105,9 +106,13 @@ Agent:
 
 **When it applies, the mutation check is where this review earns its cost.** A suite that passes with a whole function deleted is the failure mode that survives any amount of reading. But it applies to a minority of branches — code whose wrong answer gets *believed* rather than noticed. Code that crashes when it's wrong is already served by running the tests.
 
-### Step 5: Present Findings Interactively
+### Step 5: Filter, Then Present Findings Interactively
 
-When the agent returns, present its findings to the user in severity order (critical first):
+The reviewer no longer caps itself, so filter before you present. Apply the cost test to each non-critical finding — how would it surface if it shipped, and what would fixing it cost then? Present every critical finding and at most **3** non-critical ones; drop the rest silently rather than listing them as deferred.
+
+Be aware of the tradeoff this creates: filtering happens in the session that wrote the code, which is the anchored party. When a finding is borderline, that bias runs toward dismissing it. The reason it's still the right place is that dropping a finding is cheaper to get wrong than never detecting one.
+
+Present what survives in severity order (critical first):
 
 ```
 ## Code Review — <branch-name>

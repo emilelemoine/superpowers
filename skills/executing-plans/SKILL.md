@@ -98,7 +98,7 @@ When executing a DAG roadmap with parallel steps:
 ## Remember
 - Review plan critically first
 - Follow plan steps exactly
-- Red-Green for every task, Refactor when warranted
+- Red-Green-Commit for every task
 - Run the formatter after every edit
 - Don't skip verifications
 - Commit after each task

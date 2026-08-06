@@ -167,16 +167,18 @@ After writing the spec document:
 
 1. Dispatch the spec-document-reviewer subagent (see spec-document-reviewer-prompt.md). The user's invocation of this skill is the request for this dispatch — perform it without asking.
 2. Fix the blocking issues. Evaluate them rather than implementing them blindly; if you reject a finding, say which and why.
-3. **Do not re-dispatch.** If a blocking issue can't be resolved, surface it to the user instead.
+3. **Do not re-dispatch to re-check your own fixes.** If a blocking issue can't be resolved, surface it to the user instead.
 
-One dispatch, not a loop. A second pass on a spec the reviewer has already seen re-checks your own fixes, which is what you already do without being told, and reliably opens new categories of issue rather than confirming the old ones. A spec is not code; residual imperfection in it is cheaper to fix during implementation than to iterate out beforehand.
+One dispatch per version of the spec, not a loop. A second pass on a spec the reviewer has already seen re-checks your own fixes, which is what you already do without being told, and reliably opens new categories of issue rather than confirming the old ones. A spec is not code; residual imperfection in it is cheaper to fix during implementation than to iterate out beforehand.
+
+A spec the *user* substantively revises is new material, not a re-check — that gets its own single dispatch.
 
 **User Review Gate:**
 After the spec review, ask the user to review the written spec before proceeding:
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+Wait for the user's response. If they request changes, make them and dispatch the spec reviewer once on the revised spec. Only proceed once the user approves.
 
 **Implementation:**
 

@@ -23,10 +23,12 @@ Two failures followed, and they are independent.
 spec, and only mentioned the gap when asked afterward. No skill in the repo tells a
 session what to do when a mandated step is blocked, so the failure mode is silence.
 
-**Tier ambiguity.** `using-superpowers` states a three-tier priority order — user
-instructions, then skills, then default system prompt — but never says which tier a
-harness-injected session instruction occupies. It is tier 3. The session read it as
-tier 1 and so treated it as overriding the skill.
+**No stated authorization.** The instruction carries its own escape clause — *unless the
+user requested it* — but nothing in the repo says whether a skill's mandated dispatch
+counts as a user request. Absent that, the session fell back to guessing at priority: it
+read the instruction as a user instruction (tier 1 in `using-superpowers`' ordering) and
+treated it as overriding the skill. The gap is the missing authorization, not the
+guess it forced.
 
 Separately, Anthropic's [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 guide argues that part of this repo's review scaffolding is now counterproductive:
@@ -43,15 +45,15 @@ the decisions made during development — something a self-review cannot produce
 
 ## Design
 
-### Tier placement
-
-`using-superpowers` gains an explicit statement that harness-injected session
-instructions are tier 3 (default system prompt), not tier 1. Tier 1 remains CLAUDE.md,
-GEMINI.md, AGENTS.md, and direct user requests only.
-
 ### Scoped authorization
 
-Invoking a skill is the user requesting the subagent dispatches that skill mandates.
+`using-superpowers` gains one statement: invoking a skill is the user requesting the
+subagent dispatches that skill mandates.
+
+This satisfies the harness instruction on its own terms rather than overriding it — the
+instruction permits dispatch when the user requested it, and this says when that
+condition is met. No claim about instruction priority is needed, and none is made.
+
 The authorization is deliberately narrow: it covers dispatches a skill names, not
 delegation in general, so Anthropic's cost guidance still governs every other case.
 
@@ -61,8 +63,8 @@ New rule in `using-superpowers`: if a step a skill marks mandatory cannot or wil
 performed, say so in the turn where it is reached, before continuing. Never complete the
 surrounding work and report the gap afterward.
 
-This is the rule that would have caught the original failure regardless of how the tier
-question was resolved.
+This is the rule that would have caught the original failure even with no authorization
+in place at all.
 
 ### One review round
 
@@ -94,9 +96,9 @@ parallel dispatch over independent tracks is the case the Opus 5 guide endorses.
 
 ## Known risks
 
-- The authorization is only as strong as the skill text carrying it. If a future harness
-  instruction is worded to override skills explicitly, the fail-loud rule is what keeps
-  the failure visible instead of silent.
+- The authorization is only as strong as the skill text carrying it. A future harness
+  instruction with no "unless the user requested it" escape clause would not be satisfied
+  by it, and the fail-loud rule is then the only thing keeping the failure visible.
 - Dropping round 2 means a fix applied in response to round 1 gets no independent check.
   The bet is that Opus 5's self-verification covers it, which is the guide's claim, not a
   measured result in this repo.
@@ -105,10 +107,10 @@ parallel dispatch over independent tracks is the case the Opus 5 guide endorses.
 
 ## Verification
 
-No automated test covers these paths — `tests/claude-code/` has no test for dispatch
-authorization or review-round counts. Verification is running a full
-brainstorm → plan → implement → finish cycle and observing that each mandated dispatch
-fires without being asked for, and that no review runs twice.
+Verification is reading the changed skill files. The authorization path cannot be tested
+deterministically: the gate is server-side, so a session where every mandated dispatch
+fires is indistinguishable from one where the instruction was never injected. A cycle run
+would return no signal about the thing it is meant to test.
 
 ## Parallelization
 

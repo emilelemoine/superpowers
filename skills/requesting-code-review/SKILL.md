@@ -96,4 +96,4 @@ Note what isn't in that report: no naming nits, no magic numbers, no "consider a
 
 **For ad-hoc work:** Use this skill, then `superpowers:finishing-a-development-branch` to merge.
 
-**For plan-driven work:** `superpowers:executing-plans` handles per-task refactor review; `superpowers:finishing-a-development-branch` handles the pre-merge branch review. You typically don't need this skill.
+**For plan-driven work:** `superpowers:finishing-a-development-branch` handles the pre-merge branch review. You typically don't need this skill.

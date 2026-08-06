@@ -25,6 +25,20 @@ Superpowers skills override default system prompt behavior, but **user instructi
 
 If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
 
+## Mandated Subagent Dispatches Are User-Requested
+
+Several skills mandate a subagent dispatch as a step: `brainstorming` dispatches a spec reviewer, `finishing-a-development-branch` dispatches `superpowers:branch-reviewer`, `using-git-worktrees` dispatches `superpowers:worktree-setup`.
+
+**When the user invokes a skill, they are requesting the dispatches that skill mandates.** A harness instruction of the form "do not call the Agent tool unless the user requested it" is *satisfied* by this, not overridden — the user requested the skill, and the skill names the dispatch. Perform it without asking.
+
+This is narrow on purpose. It authorizes the dispatches a skill names. It says nothing about delegation in general — for everything else, delegate only where the work is genuinely large and independent, and prefer one subagent to several.
+
+## Never Skip A Mandatory Step Silently
+
+If you cannot or will not perform a step a skill marks as mandatory, **say so in the turn where you reach it, before you continue.** Name the step and the reason.
+
+Finishing the surrounding work and mentioning the gap afterward is the failure this rule exists to prevent. By then the user has a deliverable they believe went through a step it never went through. A step you announce as skipped is a decision the user can make; a step you skip quietly is a defect you handed them.
+
 ## How to Access Skills
 
 **In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.

@@ -1,7 +1,7 @@
 ---
 name: brainstorming
 description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
-effort: max
+effort: high
 ---
 
 # Brainstorming Ideas Into Designs
@@ -43,7 +43,7 @@ This checklist applies once you've determined it's a build request. You MUST cre
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit. Add a "## Parallelization" section **only if** there are genuinely independent work streams (see below).
-7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix blocking issues and re-dispatch once to verify (max 2 rounds, then surface to human)
+7. **Spec review** — dispatch spec-document-reviewer subagent exactly once, with precisely crafted review context (never your session history); fix the blocking issues and do not re-dispatch
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — spawn a fresh-context `superpowers:code-planner` agent with only the design doc path
 
@@ -63,8 +63,9 @@ digraph brainstorming {
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
     "Write design doc" [shape=box];
-    "Spec review loop (max 2 rounds)" [shape=box];
-    "Spec review passed?" [shape=diamond];
+    "Spec review (one dispatch)" [shape=box];
+    "Blocking issues resolvable?" [shape=diamond];
+    "Surface to user" [shape=doublecircle];
     "User reviews spec?" [shape=diamond];
     "Spawn superpowers:code-planner agent\n(fresh context)" [shape=doublecircle];
 
@@ -83,10 +84,10 @@ digraph brainstorming {
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
-    "Write design doc" -> "Spec review loop (max 2 rounds)";
-    "Spec review loop (max 2 rounds)" -> "Spec review passed?";
-    "Spec review passed?" -> "Spec review loop (max 2 rounds)" [label="blocking issues,\nfix and verify once"];
-    "Spec review passed?" -> "User reviews spec?" [label="approved"];
+    "Write design doc" -> "Spec review (one dispatch)";
+    "Spec review (one dispatch)" -> "Blocking issues resolvable?";
+    "Blocking issues resolvable?" -> "Surface to user" [label="no"];
+    "Blocking issues resolvable?" -> "User reviews spec?" [label="yes, fixed"];
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Spawn superpowers:code-planner agent\n(fresh context)" [label="approved"];
 }
@@ -135,17 +136,11 @@ digraph brainstorming {
 
 ## After the Design
 
-**Parallelization (usually one line):**
+**Parallelization (only when it exists):**
 
-Most work is sequential. The default is a single line in the design doc:
+Most work is sequential, so most designs say nothing about parallelism and the plan comes out as a single step. Do not add a section to assert this — the absence of one already means it.
 
-```markdown
-## Parallelization
-
-All work is sequential — no parallelization opportunities.
-```
-
-Only write more than that when the design genuinely contains **separate subsystems that different people could build at the same time without talking to each other.** That is a high bar: separate branches, separate worktrees, separate sessions. "These two functions don't depend on each other" is not parallelism — it's just two commits.
+Write about parallelism only when the design genuinely contains **separate subsystems that different people could build at the same time without talking to each other.** That is a high bar: separate branches, separate worktrees, separate sessions. "These two functions don't depend on each other" is not parallelism — it's just two commits.
 
 When the bar is genuinely met, say what the shared foundation is, which streams are independent once it exists, and what has to wait for all of them:
 
@@ -158,7 +153,7 @@ They communicate through the data models only, no direct coupling.
 Integration tests should run after all three are merged.
 ```
 
-The code-planner reads this section and translates it into the DAG roadmap. Inventing parallelism here forces a multi-step DAG downstream that costs more to coordinate than the work saves.
+The code-planner translates such a section into a DAG roadmap. Inventing parallelism here forces a multi-step DAG downstream that costs more to coordinate than the work saves.
 
 **Documentation:**
 
@@ -167,21 +162,23 @@ The code-planner reads this section and translates it into the DAG roadmap. Inve
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
-**Spec Review Loop (max 2 rounds):**
+**Spec Review (exactly one dispatch):**
 After writing the spec document:
 
-1. **Round 1** — dispatch spec-document-reviewer subagent (see spec-document-reviewer-prompt.md). Fix the blocking issues only.
-2. **Round 2** — re-dispatch to verify *those specific fixes landed*. Tell the reviewer this is a verification pass: it must not open new categories of issue.
-3. If round 2 still returns blocking issues, **stop and surface to the user.** Do not run a round 3.
+1. Dispatch the spec-document-reviewer subagent (see spec-document-reviewer-prompt.md). The user's invocation of this skill is the request for this dispatch — perform it without asking.
+2. Fix the blocking issues. Evaluate them rather than implementing them blindly; if you reject a finding, say which and why.
+3. **Do not re-dispatch to re-check your own fixes.** If a blocking issue can't be resolved, surface it to the user instead.
 
-Two rounds is the cap, not a target — one clean round is the normal outcome. Rounds 3+ overwhelmingly fix problems introduced by rounds 1–2, not problems in the design. A spec is not code; residual imperfection in it is cheaper to fix during implementation than to iterate out beforehand.
+One dispatch per version of the spec, not a loop. A second pass on a spec the reviewer has already seen re-checks your own fixes, which is what you already do without being told, and reliably opens new categories of issue rather than confirming the old ones. A spec is not code; residual imperfection in it is cheaper to fix during implementation than to iterate out beforehand.
+
+A spec the *user* substantively revises is new material, not a re-check — that gets its own single dispatch.
 
 **User Review Gate:**
-After the spec review loop passes, ask the user to review the written spec before proceeding:
+After the spec review, ask the user to review the written spec before proceeding:
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+Wait for the user's response. If they request changes, make them and dispatch the spec reviewer once on the revised spec. Only proceed once the user approves.
 
 **Implementation:**
 

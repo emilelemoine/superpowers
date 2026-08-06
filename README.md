@@ -106,7 +106,7 @@ Start a new session in your chosen platform and ask for something that should tr
 
 3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
 
-4. **executing-plans** - Activates with plan. Follows TDD loop (red-green-refactor) for each task with lightweight refactor review after each green phase.
+4. **executing-plans** - Activates with plan. Follows the TDD loop (red-green-commit) for each task. Review happens once, pre-merge, on the whole branch.
 
 5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
 
@@ -130,7 +130,7 @@ Start a new session in your chosen platform and ask for something that should tr
 **Collaboration** 
 - **brainstorming** - Socratic design refinement
 - **writing-plans** - Detailed implementation plans
-- **executing-plans** - TDD loop with lightweight refactor review per task
+- **executing-plans** - TDD loop, one task at a time
 - **dispatching-parallel-agents** - Concurrent subagent workflows
 - **requesting-code-review** - Pre-review checklist
 - **receiving-code-review** - Responding to feedback

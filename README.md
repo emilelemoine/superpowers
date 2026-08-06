@@ -137,6 +137,11 @@ Start a new session in your chosen platform and ask for something that should tr
 - **using-git-worktrees** - Parallel development branches
 - **finishing-a-development-branch** - Merge/PR decision workflow
 
+**Science & Writing**
+- **scientific-writing-style** - Style guide and revision protocol for papers, abstracts, legends, and reviewer responses
+- **nih-grant-writing** - NIH applications under the Simplified Review Framework (aims pages, Research Strategy, K/F awards)
+- **scientific-figures** - Figure design judgment: chart choice, color, uncertainty, annotation
+
 **Meta**
 - **writing-skills** - Create new skills following best practices (includes testing methodology)
 - **using-superpowers** - Introduction to the skills system

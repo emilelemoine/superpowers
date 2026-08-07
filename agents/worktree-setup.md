@@ -127,9 +127,17 @@ rm -f "$LOG"
 
 ## Call 2: Test baseline
 
-Run the reported `TEST_CMD` with the Bash tool's `run_in_background` set to true, then read back only the tail. Suites can run for minutes and emit thousands of lines — never let the full output into your context.
+Run the reported `TEST_CMD` **synchronously**, piping through `tail` so only the summary reaches your context. Set the Bash tool's `timeout` to `600000` (10 minutes, the maximum):
+
+```bash
+<TEST_CMD> 2>&1 | tail -20
+```
+
+Do **not** background this. A synchronous call with `| tail` is one tool call; backgrounding costs at least three and invites the failure below.
 
 If `TEST_CMD=none`, skip this and report tests as SKIPPED.
+
+**Only if the 10-minute timeout is hit**, re-run it with `run_in_background: true`. The Bash tool result gives you the output file path — pass that path to `Read` **exactly as returned**. Never construct, guess, or retype it: the directory name mangles the repo path in ways you cannot predict (`_` may appear as `-`), and a hand-built path sends you into a hunt that costs more than the test run. Never `sleep`-loop on a path you assembled yourself.
 
 ## Call 3: Report
 
@@ -152,6 +160,7 @@ Return exactly this format and nothing else:
 ## Important
 
 - **Three tool calls is the target.** Four if `NEEDS_DECISION` or a `SETUP_DOC` needs reading. If you find yourself running `ls`, `cat`, or `git status` to check the script's work, stop — the script already reported it.
+- **Never go path-hunting.** If a file you expected isn't where you thought, you built the path wrong; re-read the tool result that gave it to you rather than running `ls` against guesses. Two failed reads of the same path means stop and report.
 - **Never `cd` into the worktree.** Chained `cd "$ABS" && ...` triggers bare-repository-attack permission prompts. Use directory flags (`--prefix`, `--directory`, `--manifest-path`, `go -C`, `git -C`).
 - **Never read full install or test output.** Tail it.
 - **Always report the worktree path**, even when tests fail — the caller decides whether to proceed.
